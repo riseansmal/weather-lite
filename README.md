@@ -3,9 +3,9 @@
 [![Github Followers](https://img.shields.io/github/followers/riseansmal?label=Follow%20riseansmal&style=social)](https://github.com/riseansmal)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-A modern, lightweight weather application built with Next.js 15, TypeScript, and Tailwind CSS. Weather Lite provides real-time weather updates with a beautiful, responsive interface and seamless user experience.
+**🚀 [Live Demo](https://weather-lite-three.vercel.app/)** • Try it now at [weather-lite-three.vercel.app](https://weather-lite-three.vercel.app/)
 
-![Weather Lite - Modern Weather Application](https://via.placeholder.com/800x400/4a90e2/ffffff?text=Weather+Lite)
+A modern, lightweight weather application built with Next.js 15, TypeScript, and Tailwind CSS. Weather Lite provides real-time weather updates with a beautiful, responsive interface and seamless user experience.
 
 ## ✨ Features
 
