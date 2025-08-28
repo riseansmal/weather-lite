@@ -138,32 +138,32 @@ The included `vercel.json` provides optimal configuration for the deployment.
 
 ```
 weather-lite/
-├── app/                    # Next.js App Router
-│   ├── api/               # API routes
-│   │   └── weather/       # Weather data proxy endpoint
-│   ├── error.tsx          # Error boundary
-│   ├── globals.css        # Global styles
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Home page
-├── components/            # React components
-│   ├── ui/               # shadcn/ui components
-│   └── weather/          # Weather-specific components
+├── app/                           # Next.js App Router
+│   ├── api/                       # API routes
+│   │   └── weather/               # Weather data proxy endpoint
+│   ├── error.tsx                  # Error boundary
+│   ├── globals.css                # Global styles
+│   ├── layout.tsx                 # Root layout
+│   └── page.tsx                   # Home page
+├── components/                    # React components
+│   ├── ui/                        # shadcn/ui components
+│   └── weather/                   # Weather-specific components
 │       ├── current-weather.tsx
 │       ├── forecast-card.tsx
 │       ├── location-selector.tsx
 │       ├── offline-indicator.tsx
 │       ├── refresh-button.tsx
 │       └── weather-display.tsx
-├── lib/                   # Utility functions
-│   ├── cache.ts          # LRU cache implementation
-│   ├── constants.ts      # App constants
-│   ├── env.ts           # Environment validation
-│   ├── location.ts      # Location detection & reverse geocoding
-│   ├── utils.ts         # Helper functions
-│   ├── weather.ts       # Weather API integration
-│   └── hooks/           # Custom React hooks
+├── lib/                           # Utility functions
+│   ├── cache.ts                   # LRU cache implementation
+│   ├── constants.ts               # App constants
+│   ├── env.ts                     # Environment validation
+│   ├── location.ts                # Location detection & reverse geocoding
+│   ├── utils.ts                   # Helper functions
+│   ├── weather.ts                 # Weather API integration
+│   └── hooks/                     # Custom React hooks
 │       └── use-network-status.ts  # Network connectivity hook
-└── public/              # Static assets
+└── public/                        # Static assets
 ```
 
 ## ⚙️ Configuration
