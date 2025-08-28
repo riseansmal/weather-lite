@@ -1,11 +1,11 @@
-# Weather Lite 🌤️
+# 🌤️ Weather Lite
 
 [![Github Followers](https://img.shields.io/github/followers/riseansmal?label=Follow%20riseansmal&style=social)](https://github.com/riseansmal)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 A modern, lightweight weather application built with Next.js 15, TypeScript, and Tailwind CSS. Weather Lite provides real-time weather updates with a beautiful, responsive interface and seamless user experience.
 
-![Weather Lite - Modern Weather Application](https://via.placeholder.com/800x400?text=Weather+Lite+-+Real-time+Weather+Updates)
+![Weather Lite - Modern Weather Application](https://via.placeholder.com/800x400/4a90e2/ffffff?text=Weather+Lite)
 
 ## ✨ Features
 
