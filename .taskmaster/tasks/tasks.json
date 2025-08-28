@@ -1,0 +1,732 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Initialize Next.js Project with TypeScript",
+        "description": "Create a new Next.js 15 application with TypeScript, App Router, and Tailwind CSS. Configure the project structure according to the PRD specifications.",
+        "details": "Execute: npx create-next-app@latest weather-lite --typescript --tailwind --app --no-src-dir --import-alias '@/*'\nThen install additional core dependencies: npm install zod@^3.23.0 clsx@^2.1.0 @radix-ui/react-slot@^1.0.2\nConfigure tsconfig.json with strict mode:\n{\n  \"compilerOptions\": {\n    \"strict\": true,\n    \"noUnusedLocals\": true,\n    \"noUnusedParameters\": true,\n    \"noImplicitReturns\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"allowJs\": true,\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"incremental\": true,\n    \"plugins\": [{\"name\": \"next\"}],\n    \"paths\": {\"@/*\": [\"./*\"]}\n  }\n}\nUpdate next.config.js to enable experimental features and CSP headers.",
+        "testStrategy": "Verify project builds successfully with npm run build. Check TypeScript strict mode is enabled. Confirm Tailwind CSS is properly configured by testing utility classes. Validate Next.js 15 App Router is functioning.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Execute create-next-app with specific configuration",
+            "description": "Run the Next.js creation command with TypeScript, Tailwind CSS, App Router, and custom alias configuration to establish the base project structure",
+            "dependencies": [],
+            "details": "Execute command: npx create-next-app@latest . --typescript --tailwind --app --no-src-dir --import-alias '@/*'. This will create the Next.js 15 project in the current directory with TypeScript support, Tailwind CSS pre-configured, App Router enabled, no src directory (files in root), and import alias @ pointing to root directory.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Install core dependencies",
+            "description": "Add essential packages including Zod for validation, clsx for conditional classes, and Radix UI primitives for accessible components",
+            "dependencies": [
+              "1.1"
+            ],
+            "details": "Run npm install to add: zod@^3.23.0 (runtime type checking and validation), clsx@^2.1.0 (utility for constructing className strings), @radix-ui/react-slot@^1.0.2 (primitive for component composition). These are foundational dependencies that will be used throughout the application for data validation, styling, and component architecture.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Configure TypeScript strict mode settings",
+            "description": "Update tsconfig.json to enable strict TypeScript compilation with additional safety checks for unused code and implicit returns",
+            "dependencies": [
+              "1.1"
+            ],
+            "details": "Modify tsconfig.json compilerOptions to include: strict: true (enables all strict type checking), noUnusedLocals: true (error on unused variables), noUnusedParameters: true (error on unused function parameters), noImplicitReturns: true (ensure all code paths return), esModuleInterop: true (better CommonJS interop), resolveJsonModule: true (import JSON files), and verify paths configuration for @/* alias is correctly set.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Update next.config.js for experimental features and CSP",
+            "description": "Configure Next.js with experimental features and Content Security Policy headers for enhanced security and performance",
+            "dependencies": [
+              "1.1"
+            ],
+            "details": "Modify next.config.js to enable experimental features like serverActions, optimizeCss, and configure security headers including Content Security Policy (CSP) directives for script-src, style-src, font-src, and img-src. Add configuration for API timeout handling and ensure proper CORS settings for the weather API integration.",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Setup Environment Variables and Configuration",
+        "description": "Create environment configuration files with default values for weather app settings including location defaults, API timeouts, and feature flags.",
+        "details": "Create .env.local file with:\nNEXT_PUBLIC_DEFAULT_CITY=\"Tbilisi, Georgia\"\nNEXT_PUBLIC_DEFAULT_LAT=41.7151\nNEXT_PUBLIC_DEFAULT_LON=44.8271\nNEXT_PUBLIC_TEMP_UNIT=celsius\nNEXT_PUBLIC_API_TIMEOUT=10000\nNEXT_PUBLIC_GEO_TIMEOUT=5000\nNEXT_PUBLIC_CACHE_TTL=600000\nNEXT_PUBLIC_REFRESH_INTERVAL=600000\nNEXT_PUBLIC_ENABLE_AUTO_REFRESH=true\nNEXT_PUBLIC_ENABLE_DARK_MODE=true\nNEXT_PUBLIC_ENABLE_CACHE=true\n\nCreate lib/constants.ts with weather code mappings and configuration constants.\nImplement environment variable validation using Zod schemas.",
+        "testStrategy": "Verify environment variables are accessible in both server and client components. Test fallback values work when variables are missing. Validate Zod schemas correctly parse and validate configuration.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create .env.local with Weather App Variables",
+            "description": "Create the .env.local file with all weather-specific environment variables including location defaults, API timeouts, cache settings, and feature flags.",
+            "dependencies": [],
+            "details": "Create .env.local file in the project root with the following variables:\n- NEXT_PUBLIC_DEFAULT_CITY=\"Tbilisi, Georgia\"\n- NEXT_PUBLIC_DEFAULT_LAT=41.7151\n- NEXT_PUBLIC_DEFAULT_LON=44.8271\n- NEXT_PUBLIC_TEMP_UNIT=celsius\n- NEXT_PUBLIC_API_TIMEOUT=10000\n- NEXT_PUBLIC_GEO_TIMEOUT=5000\n- NEXT_PUBLIC_CACHE_TTL=600000\n- NEXT_PUBLIC_REFRESH_INTERVAL=600000\n- NEXT_PUBLIC_ENABLE_AUTO_REFRESH=true\n- NEXT_PUBLIC_ENABLE_DARK_MODE=true\n- NEXT_PUBLIC_ENABLE_CACHE=true\n\nEnsure proper formatting and add comments explaining each variable's purpose.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Create lib/constants.ts with Weather Mappings",
+            "description": "Create the constants file containing weather code mappings, configuration constants, and any other app-wide constants needed for the weather application.",
+            "dependencies": [],
+            "details": "Create lib/constants.ts file with:\n- Weather code to human-readable condition mappings (e.g., 0: 'Clear sky', 1: 'Mainly clear', etc.)\n- Weather icon mappings for different conditions\n- Temperature unit conversion constants\n- Default configuration values that mirror environment variables\n- API endpoint constants\n- Any other weather-related constants like wind speed categories or UV index levels\n\nExport all constants properly for use throughout the application.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Zod Validation Schemas for Environment Variables",
+            "description": "Create Zod schemas to validate and parse environment variables with proper type safety and fallback values.",
+            "dependencies": [
+              "2.1",
+              "2.2"
+            ],
+            "details": "Create lib/env.ts or add to lib/constants.ts:\n- Define Zod schema for all environment variables with proper types (number, boolean, string)\n- Implement parsing logic with .parse() or .safeParse()\n- Add fallback values for optional variables\n- Create typed config object that exports validated environment variables\n- Add error handling for missing required variables\n- Ensure both server and client-side variables are properly validated\n\nExample schema should validate types, ranges (for timeouts/intervals), and enum values (for temp units).",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Install and Configure shadcn/ui Components",
+        "description": "Set up shadcn/ui component library and add required components (Button, Card, Skeleton, Input) with proper theming and styling configuration.",
+        "details": "Execute: npx shadcn-ui@latest init\nChoose: New York style, Zinc color, CSS variables\nAdd components: npx shadcn-ui@latest add button card skeleton input\n\nCreate components/ui directory structure and configure cn() utility in lib/utils.ts:\nimport { clsx, type ClassValue } from 'clsx'\nimport { twMerge } from 'tailwind-merge'\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs))\n}\n\nUpdate tailwind.config.ts to include shadcn/ui configuration and custom CSS properties for theming.",
+        "testStrategy": "Verify all UI components render without errors. Test theme switching works with CSS variables. Validate accessibility features (ARIA labels, keyboard navigation). Check components are properly typed with TypeScript.",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize shadcn/ui with Configuration",
+            "description": "Run the shadcn/ui initialization command and configure it with New York style, Zinc color scheme, and CSS variables for theming support",
+            "dependencies": [],
+            "details": "Execute 'npx shadcn-ui@latest init' command and select the following options when prompted: Style: New York, Base color: Zinc, CSS variables: yes. This will create the initial shadcn/ui configuration files including components.json and update the project's CSS files with the necessary base styles and CSS custom properties for theming",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Install Required UI Components",
+            "description": "Add the four essential shadcn/ui components (Button, Card, Skeleton, Input) to the project using the shadcn CLI",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Run the following commands to add each component: 'npx shadcn-ui@latest add button', 'npx shadcn-ui@latest add card', 'npx shadcn-ui@latest add skeleton', 'npx shadcn-ui@latest add input'. These commands will create the component files in the components/ui directory with proper TypeScript types and styling",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Configure cn() Utility Function",
+            "description": "Create the cn() utility function in lib/utils.ts for merging Tailwind CSS classes with proper conflict resolution",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Create or update the lib/utils.ts file with the cn() function that combines clsx for conditional classes and tailwind-merge for proper class merging. Import statements: import { clsx, type ClassValue } from 'clsx' and import { twMerge } from 'tailwind-merge'. The function should return twMerge(clsx(inputs)) to handle className conflicts properly",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Update Tailwind Configuration for shadcn/ui",
+            "description": "Modify tailwind.config.ts to include shadcn/ui specific configuration, CSS custom properties, and theme extensions",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Update tailwind.config.ts to include the shadcn/ui configuration generated during initialization. Ensure the content array includes './components/**/*.{ts,tsx,js,jsx}', add any required theme extensions for colors using CSS variables (e.g., --background, --foreground, --card, --primary), and configure any additional plugins required by shadcn/ui components. Verify the dark mode configuration is set to 'class' for proper theme switching support",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Implement Location Detection System",
+        "description": "Create location detection service with fallback chain: Browser Geolocation API → IP-based location → Default location. Handle all permission states and errors gracefully.",
+        "details": "Create lib/location.ts with:\n\ninterface Location {\n  latitude: number;\n  longitude: number;\n  city?: string;\n  source: 'gps' | 'ip' | 'manual' | 'default';\n}\n\nasync function getBrowserLocation(): Promise<Location> {\n  return new Promise((resolve, reject) => {\n    if (!navigator.geolocation) reject(new Error('Geolocation not supported'));\n    navigator.geolocation.getCurrentPosition(\n      (pos) => resolve({latitude: pos.coords.latitude, longitude: pos.coords.longitude, source: 'gps'}),\n      reject,\n      {timeout: 5000, enableHighAccuracy: true, maximumAge: 300000}\n    );\n  });\n}\n\nasync function getIPLocation(): Promise<Location> {\n  const response = await fetch('http://ip-api.com/json/', {signal: AbortSignal.timeout(3000)});\n  const data = await response.json();\n  return {latitude: data.lat, longitude: data.lon, city: data.city, source: 'ip'};\n}\n\nImplement complete fallback chain with proper error handling.",
+        "testStrategy": "Test browser permission grant/deny scenarios. Verify IP fallback triggers when GPS fails. Confirm default location loads when all methods fail. Test timeout handling (5s for GPS, 3s for IP). Validate location source indicators.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create location TypeScript interfaces and types",
+            "description": "Define the core Location interface and related types including LocationError, LocationPermissionState, and LocationOptions for the entire location detection system",
+            "dependencies": [],
+            "details": "Create lib/location.ts file with Location interface containing latitude, longitude, city (optional), and source fields. Define LocationError type for different error scenarios (permission denied, timeout, unavailable). Add LocationOptions interface for configurable timeouts and accuracy settings. Export all types for use across the application.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement browser geolocation API wrapper",
+            "description": "Create getBrowserLocation function with proper error handling, timeout configuration, and permission state detection",
+            "dependencies": [
+              "4.1"
+            ],
+            "details": "Implement getBrowserLocation() function that wraps navigator.geolocation.getCurrentPosition in a Promise. Configure timeout (5000ms), enableHighAccuracy (true), and maximumAge (300000ms). Handle geolocation not supported, permission denied, position unavailable, and timeout errors. Return Location object with source: 'gps' on success.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create IP-based location fallback service",
+            "description": "Implement getIPLocation function using ip-api.com with proper error handling and timeout management",
+            "dependencies": [
+              "4.1"
+            ],
+            "details": "Create getIPLocation() function that fetches from http://ip-api.com/json/ with AbortSignal.timeout(3000). Parse response to extract lat, lon, and city fields. Handle network errors, invalid responses, and timeouts. Transform response into Location object with source: 'ip'. Add rate limiting awareness and handle API failures gracefully.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement fallback chain orchestration logic",
+            "description": "Create main detectLocation function that orchestrates the fallback chain from GPS to IP to default location",
+            "dependencies": [
+              "4.1",
+              "4.2",
+              "4.3"
+            ],
+            "details": "Implement detectLocation() as the main entry point that tries getBrowserLocation first, catches errors and falls back to getIPLocation, then falls back to default location if both fail. Log each fallback attempt for debugging. Preserve error context for each failed attempt. Return Location with appropriate source indicator.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Add default location configuration and permission management",
+            "description": "Implement default location settings and browser permission state tracking for better UX",
+            "dependencies": [
+              "4.4"
+            ],
+            "details": "Create DEFAULT_LOCATION constant (e.g., New York: 40.7128, -74.0060). Implement checkPermissionState() to query navigator.permissions API for geolocation status. Add caching mechanism for successful location detections with TTL. Export complete location service API including detectLocation(), checkPermissionState(), and clearLocationCache().",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Create Weather API Integration Layer",
+        "description": "Implement Open-Meteo API client with proper error handling, response validation using Zod, and weather code translation to human-readable conditions.",
+        "details": "Create lib/weather.ts with Open-Meteo integration:\n\nconst WEATHER_API_BASE = 'https://api.open-meteo.com/v1/forecast';\n\ninterface WeatherData {\n  current: CurrentWeather;\n  forecast: ForecastDay[];\n  location: Location;\n  timestamp: number;\n}\n\nconst WeatherResponseSchema = z.object({\n  current_weather: z.object({\n    temperature: z.number(),\n    weathercode: z.number(),\n    time: z.string()\n  }),\n  daily: z.object({\n    time: z.array(z.string()),\n    temperature_2m_max: z.array(z.number()),\n    temperature_2m_min: z.array(z.number()),\n    weathercode: z.array(z.number())\n  })\n});\n\nasync function fetchWeatherData(lat: number, lon: number): Promise<WeatherData> {\n  const params = new URLSearchParams({\n    latitude: lat.toString(),\n    longitude: lon.toString(),\n    current_weather: 'true',\n    daily: 'temperature_2m_max,temperature_2m_min,weathercode',\n    timezone: 'auto',\n    forecast_days: '5'\n  });\n  \n  const response = await fetch(`${WEATHER_API_BASE}?${params}`, {signal: AbortSignal.timeout(10000)});\n  const validated = WeatherResponseSchema.parse(await response.json());\n  return transformWeatherResponse(validated);\n}",
+        "testStrategy": "Test API calls with valid coordinates. Verify Zod validation catches malformed responses. Test timeout handling (10s limit). Validate weather code translation accuracy. Test error scenarios (network failure, invalid coords).",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define TypeScript interfaces for weather data structures",
+            "description": "Create comprehensive TypeScript interfaces for all weather-related data types including CurrentWeather, ForecastDay, Location, and the main WeatherData interface that will be used throughout the application.",
+            "dependencies": [],
+            "details": "In lib/weather.ts, define interfaces for CurrentWeather (temperature, condition, weathercode, humidity, windSpeed, etc.), ForecastDay (date, tempMax, tempMin, condition, weathercode), Location (name, country, lat, lon), and the main WeatherData interface that combines current weather, 5-day forecast array, location details, and timestamp. Ensure interfaces match the transformed data structure, not the raw API response.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Create Zod schemas for API response validation",
+            "description": "Implement Zod validation schemas to validate and type-check the raw Open-Meteo API response, ensuring data integrity and catching malformed responses before processing.",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Create WeatherResponseSchema using Zod to validate the Open-Meteo API response structure including current_weather object (temperature, weathercode, time, windspeed, winddirection), daily object (time array, temperature_2m_max array, temperature_2m_min array, weathercode array), and timezone fields. Add proper number, string, and array validations with appropriate constraints.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Open-Meteo API client with fetch and timeout",
+            "description": "Build the core fetchWeatherData function that constructs API requests with proper parameters, implements timeout handling, and manages network errors gracefully.",
+            "dependencies": [
+              "5.2"
+            ],
+            "details": "Implement fetchWeatherData function that accepts latitude and longitude, constructs URLSearchParams with required parameters (current_weather, daily fields, timezone auto, forecast_days 5), uses fetch with AbortSignal.timeout(10000) for 10-second timeout, handles network errors and timeouts with try-catch, validates response with WeatherResponseSchema.parse(), and returns the raw validated data for transformation.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Create weather code to human-readable condition mapping",
+            "description": "Build a comprehensive mapping system to translate Open-Meteo weather codes (WMO codes) into human-readable weather conditions and appropriate icons or emoji representations.",
+            "dependencies": [],
+            "details": "Create getWeatherCondition function that maps weather codes (0-99) to conditions like 'Clear', 'Partly Cloudy', 'Rainy', 'Thunderstorm', 'Snow', etc. Include a weatherCodeMap object with all WMO weather codes, implement fallback for unknown codes, and optionally add weather emoji or icon suggestions for each condition. Handle code ranges (e.g., 61-65 for rain variations).",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Build data transformation layer for API responses",
+            "description": "Create the transformWeatherResponse function that converts validated Open-Meteo API data into the application's WeatherData format with proper error handling and data enrichment.",
+            "dependencies": [
+              "5.1",
+              "5.3",
+              "5.4"
+            ],
+            "details": "Implement transformWeatherResponse that takes validated API response and transforms current_weather into CurrentWeather interface format, maps daily arrays into ForecastDay array (combining date, temps, conditions), uses getWeatherCondition to translate weather codes, adds timestamp for cache management, handles timezone conversion if needed, and ensures all temperature values respect the configured unit (celsius/fahrenheit).",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Build In-Memory Cache System",
+        "description": "Implement LRU cache for weather data with TTL support, automatic expiration, and session-based storage to reduce API calls.",
+        "details": "Create lib/cache.ts:\n\nclass WeatherCache {\n  private cache = new Map<string, CacheEntry>();\n  private maxEntries = 10;\n  private ttl = 600000; // 10 minutes\n  \n  private getCacheKey(lat: number, lon: number): string {\n    return `${lat.toFixed(4)}-${lon.toFixed(4)}`;\n  }\n  \n  get(location: {latitude: number; longitude: number}): WeatherData | null {\n    const key = this.getCacheKey(location.latitude, location.longitude);\n    const entry = this.cache.get(key);\n    \n    if (!entry) return null;\n    if (Date.now() > entry.expiresAt) {\n      this.cache.delete(key);\n      return null;\n    }\n    \n    return {...entry.data, cached: true};\n  }\n  \n  set(location: {latitude: number; longitude: number}, data: WeatherData): void {\n    const key = this.getCacheKey(location.latitude, location.longitude);\n    \n    if (this.cache.size >= this.maxEntries) {\n      const firstKey = this.cache.keys().next().value;\n      this.cache.delete(firstKey);\n    }\n    \n    this.cache.set(key, {\n      data,\n      timestamp: Date.now(),\n      expiresAt: Date.now() + this.ttl\n    });\n  }\n}\n\nexport const weatherCache = new WeatherCache();",
+        "testStrategy": "Test cache hit/miss scenarios. Verify TTL expiration (10 min). Test LRU eviction with >10 entries. Validate cache key generation. Test memory usage stays under 100KB. Verify cache clears on page refresh.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement LRU Cache Class with Map-based Storage",
+            "description": "Create the core WeatherCache class structure with Map-based storage for cache entries, including the cache entry interface definition and basic class initialization.",
+            "dependencies": [],
+            "details": "Define CacheEntry interface with data, timestamp, and expiresAt properties. Initialize WeatherCache class with private cache Map, maxEntries (10), and ttl (600000ms) properties. Implement the foundation for LRU behavior using Map's insertion order guarantee.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Add TTL Expiration Logic with Timestamp Tracking",
+            "description": "Implement time-to-live functionality with automatic expiration checking on cache retrieval and proper timestamp management for each cache entry.",
+            "dependencies": [
+              "6.1"
+            ],
+            "details": "Implement expiration checking in the get() method by comparing current time with expiresAt timestamp. Add logic to automatically delete expired entries when accessed. Set proper timestamps and calculate expiration times when storing new entries in the cache.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create Cache Key Generation and Validation",
+            "description": "Implement location-based cache key generation using latitude/longitude coordinates with proper precision rounding for consistent key creation.",
+            "dependencies": [
+              "6.1"
+            ],
+            "details": "Create getCacheKey() method that takes latitude and longitude, rounds them to 4 decimal places using toFixed(4), and returns a string key in format 'lat-lon'. Ensure consistent key generation for nearby coordinates to improve cache hit rates.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Cache Eviction and Memory Management",
+            "description": "Add LRU eviction strategy when cache reaches maximum capacity and implement the complete get/set methods with proper cache management logic.",
+            "dependencies": [
+              "6.1",
+              "6.2",
+              "6.3"
+            ],
+            "details": "Complete the set() method with LRU eviction that removes the oldest entry when maxEntries is reached. Implement get() method that returns cached weather data with a 'cached' flag. Export singleton weatherCache instance. Add type definitions for WeatherData and Location interfaces.",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Create Main Weather Display Components",
+        "description": "Build React components for current weather display, 5-day forecast cards, and weather condition visualization with proper client/server component separation.",
+        "details": "Create components/weather/ directory:\n\n// current-weather.tsx (client component)\n'use client';\nimport { Card, CardContent, CardHeader } from '@/components/ui/card';\n\nexport function CurrentWeather({ data }: { data: CurrentWeather }) {\n  return (\n    <Card className=\"w-full max-w-md\">\n      <CardHeader>\n        <h2 className=\"text-2xl font-bold\">{data.condition}</h2>\n      </CardHeader>\n      <CardContent>\n        <div className=\"text-5xl font-bold\">{data.temperature}°{data.unit}</div>\n        <div className=\"text-lg text-muted-foreground\">Feels like {data.apparentTemperature}°</div>\n      </CardContent>\n    </Card>\n  );\n}\n\n// forecast-card.tsx\nexport function ForecastCard({ day }: { day: ForecastDay }) {\n  return (\n    <Card className=\"min-w-[120px]\">\n      <CardContent className=\"p-4\">\n        <div className=\"font-medium\">{day.dayName}</div>\n        <div className=\"text-2xl my-2\">{WEATHER_ICONS[day.weatherCode]}</div>\n        <div className=\"text-sm\">\n          <span className=\"font-medium\">{day.temperatureMax}°</span>\n          <span className=\"text-muted-foreground\"> / {day.temperatureMin}°</span>\n        </div>\n      </CardContent>\n    </Card>\n  );\n}",
+        "testStrategy": "Test components render with mock data. Verify responsive layout on mobile/tablet/desktop. Test loading states with Skeleton components. Validate accessibility (ARIA labels, contrast ratios). Check TypeScript prop validation.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          5
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create CurrentWeather Component",
+            "description": "Build the main current weather display component with temperature, condition, and feels-like temperature display using shadcn/ui Card components",
+            "dependencies": [],
+            "details": "Create components/weather/current-weather.tsx as a client component. Implement TypeScript interface for CurrentWeather data type. Display temperature with proper unit formatting, weather condition as header, and apparent temperature. Ensure proper styling with Tailwind classes for text sizes and colors. Add proper TypeScript prop validation.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Build ForecastCard Component",
+            "description": "Implement individual forecast card component for displaying daily weather predictions with min/max temperatures and weather icons",
+            "dependencies": [],
+            "details": "Create components/weather/forecast-card.tsx with ForecastDay interface. Display day name, weather icon placeholder, and temperature range (max/min). Style with Card component from shadcn/ui with proper padding and minimum width. Implement responsive sizing for mobile devices.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Weather Icon Mapping System",
+            "description": "Create weather code to icon/emoji mapping system and constants for visual weather condition representation",
+            "dependencies": [],
+            "details": "Create components/weather/weather-icons.ts with WEATHER_ICONS constant mapping weather codes to appropriate emojis or icon components. Include all Open-Meteo weather codes (0-99). Consider implementing both light and dark mode icon variants. Export helper function to get icon by weather code.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Create Loading Skeleton Components",
+            "description": "Build skeleton loader components for current weather and forecast cards to display during data fetching",
+            "dependencies": [
+              "7.1",
+              "7.2"
+            ],
+            "details": "Create components/weather/weather-skeleton.tsx with CurrentWeatherSkeleton and ForecastCardSkeleton components. Use shadcn/ui Skeleton component for shimmer effects. Match exact dimensions and layout of actual components. Implement skeleton for the full 5-day forecast row.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Build Main WeatherDisplay Container",
+            "description": "Create the main container component that orchestrates current weather and forecast display with proper layout",
+            "dependencies": [
+              "7.1",
+              "7.2",
+              "7.3"
+            ],
+            "details": "Create components/weather/weather-display.tsx as server component. Compose CurrentWeather and multiple ForecastCard components. Implement horizontal scrollable container for forecast cards on mobile. Add proper spacing and alignment between sections. Handle loading and error states with appropriate components.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Add Responsive Layout Styles",
+            "description": "Implement responsive design system ensuring proper display across mobile, tablet, and desktop viewports",
+            "dependencies": [
+              "7.5"
+            ],
+            "details": "Add responsive container queries and breakpoints to weather-display.tsx. Implement mobile-first design with horizontal scroll for forecast cards. Add tablet layout with 3-column forecast grid. Create desktop layout with all forecasts visible. Ensure proper touch targets and spacing on mobile devices.",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Implement Location Selection and Search",
+        "description": "Create location selector component with manual city search functionality using Open-Meteo geocoding API, input validation, and error handling.",
+        "details": "Create components/weather/location-selector.tsx:\n\n'use client';\nimport { useState } from 'react';\nimport { Input } from '@/components/ui/input';\nimport { Button } from '@/components/ui/button';\n\nconst GEOCODING_API = 'https://geocoding-api.open-meteo.com/v1/search';\n\nexport function LocationSelector({ onLocationChange }: { onLocationChange: (location: Location) => void }) {\n  const [query, setQuery] = useState('');\n  const [error, setError] = useState('');\n  const [loading, setLoading] = useState(false);\n  \n  const handleSearch = async () => {\n    if (query.length < 2) {\n      setError('City name must be at least 2 characters');\n      return;\n    }\n    \n    setLoading(true);\n    setError('');\n    \n    try {\n      const params = new URLSearchParams({ name: query, count: '1' });\n      const response = await fetch(`${GEOCODING_API}?${params}`);\n      const data = await response.json();\n      \n      if (!data.results?.length) {\n        setError('City not found. Please check the spelling.');\n        return;\n      }\n      \n      const result = data.results[0];\n      onLocationChange({\n        latitude: result.latitude,\n        longitude: result.longitude,\n        city: result.name,\n        source: 'manual'\n      });\n      \n      setQuery('');\n    } catch (err) {\n      setError('Failed to search location');\n    } finally {\n      setLoading(false);\n    }\n  };\n}",
+        "testStrategy": "Test city search with valid/invalid names. Verify input validation (min 2 chars, max 100). Test error messages display correctly. Verify search debouncing prevents spam. Test keyboard navigation (Enter key submission).",
+        "priority": "medium",
+        "dependencies": [
+          4,
+          7
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create LocationSelector Component Structure",
+            "description": "Set up the base LocationSelector component with form controls including Input and Button components from shadcn/ui, establish props interface for onLocationChange callback, and create initial component structure with proper TypeScript types for Location object.",
+            "dependencies": [],
+            "details": "Create components/weather/location-selector.tsx file with basic React component structure. Import required UI components (Input, Button) from @/components/ui. Define Location interface with latitude, longitude, city, and source properties. Set up component props interface with onLocationChange callback function. Initialize component state for query, error, and loading states using useState hooks.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Geocoding API Integration",
+            "description": "Integrate Open-Meteo geocoding API for city search functionality, implement async fetch logic with proper URL construction using URLSearchParams, parse API responses and extract location data, and handle successful location selection with callback invocation.",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Implement handleSearch async function to call Open-Meteo geocoding API. Construct API URL with query parameters using URLSearchParams. Parse JSON response and extract first result containing latitude, longitude, and city name. Call onLocationChange callback with formatted location data including source='manual'. Clear search query on successful selection. Handle API response structure validation.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Add Input Validation and Debouncing",
+            "description": "Implement client-side validation for minimum 2 characters and maximum 100 characters, add debouncing mechanism to prevent excessive API calls during typing, validate input format and special characters, and implement Enter key submission support.",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Add validation logic to check query length before API call. Implement debounce hook using useEffect and setTimeout to delay API calls by 500ms after typing stops. Add regex validation to prevent invalid characters in city names. Implement onKeyPress handler for Enter key form submission. Add maxLength attribute to Input component. Display appropriate validation error messages.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Create Error Handling and User Feedback",
+            "description": "Implement comprehensive error handling for API failures, network issues, and no results found scenarios, add loading states with proper UI feedback, create user-friendly error messages, and implement accessibility features for screen readers.",
+            "dependencies": [
+              "8.2",
+              "8.3"
+            ],
+            "details": "Wrap API calls in try-catch blocks to handle network errors. Display specific error messages for different failure scenarios (network error, city not found, API timeout). Show loading spinner or disabled button state during search. Add aria-live regions for error announcements. Implement error clearing on new searches. Add proper ARIA labels and descriptions for form elements.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Integrate LocationSelector with Main Weather Display",
+            "description": "Connect LocationSelector component to main weather app state management, implement location change handling in parent components, ensure weather data refreshes on location change, and maintain location persistence in browser storage.",
+            "dependencies": [
+              "8.4"
+            ],
+            "details": "Export LocationSelector component with proper TypeScript types. Integrate component into main weather display page or layout. Implement location state management in parent component. Connect location changes to weather data fetching logic. Add localStorage persistence for selected locations. Ensure proper re-rendering and data updates when location changes. Test integration with existing location detection system.",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Add Refresh and Auto-Refresh Functionality",
+        "description": "Implement manual refresh button with debouncing and automatic refresh timer that respects document visibility and user interactions.",
+        "details": "Create components/weather/refresh-button.tsx and auto-refresh hook:\n\n// refresh-button.tsx\n'use client';\nimport { useState, useCallback } from 'react';\nimport { Button } from '@/components/ui/button';\n\nexport function RefreshButton({ onRefresh }: { onRefresh: () => Promise<void> }) {\n  const [cooldown, setCooldown] = useState(0);\n  const [loading, setLoading] = useState(false);\n  \n  const handleRefresh = useCallback(async () => {\n    if (cooldown > 0) return;\n    \n    setLoading(true);\n    setCooldown(10);\n    \n    try {\n      await onRefresh();\n    } finally {\n      setLoading(false);\n    }\n    \n    const interval = setInterval(() => {\n      setCooldown(prev => {\n        if (prev <= 1) {\n          clearInterval(interval);\n          return 0;\n        }\n        return prev - 1;\n      });\n    }, 1000);\n  }, [cooldown, onRefresh]);\n  \n  return (\n    <Button onClick={handleRefresh} disabled={cooldown > 0 || loading}>\n      {cooldown > 0 ? `Wait ${cooldown}s` : 'Refresh'}\n    </Button>\n  );\n}\n\n// useAutoRefresh hook\nexport function useAutoRefresh(callback: () => void, interval: number) {\n  useEffect(() => {\n    if (!document.hidden) {\n      const timer = setInterval(callback, interval);\n      return () => clearInterval(timer);\n    }\n  }, [callback, interval]);\n}",
+        "testStrategy": "Test manual refresh triggers data update. Verify 10-second cooldown prevents spam. Test auto-refresh every 10 minutes. Verify auto-refresh pauses when tab not visible. Test timer reset on manual refresh.",
+        "priority": "medium",
+        "dependencies": [
+          7,
+          6
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create RefreshButton Component with Cooldown Timer",
+            "description": "Implement the RefreshButton component in components/weather/refresh-button.tsx with state management for cooldown timer and loading states",
+            "dependencies": [],
+            "details": "Create refresh-button.tsx file with useState for cooldown (10 seconds) and loading states. Implement handleRefresh callback that triggers onRefresh prop, sets loading state, starts cooldown timer using setInterval that counts down from 10 to 0. Button should display 'Wait Xs' during cooldown and 'Refresh' when ready. Disable button during cooldown or loading states.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement useAutoRefresh Custom Hook",
+            "description": "Create a custom React hook that manages automatic refresh intervals with proper cleanup and dependency handling",
+            "dependencies": [],
+            "details": "Implement useAutoRefresh hook in the same file or separate hooks file. Accept callback function and interval duration as parameters. Use useEffect to set up setInterval for periodic execution. Ensure proper cleanup by returning clearInterval function. Add dependency array [callback, interval] to re-establish timer when parameters change.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Add Document Visibility Detection",
+            "description": "Enhance the auto-refresh hook to pause when the document/tab is not visible and resume when it becomes visible again",
+            "dependencies": [
+              "9.2"
+            ],
+            "details": "Modify useAutoRefresh hook to check document.hidden property before starting timer. Add event listener for 'visibilitychange' event to pause/resume auto-refresh based on document visibility. Clear timer when document becomes hidden, restart when visible. Ensure proper cleanup of event listeners in useEffect return function.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Integrate Refresh Logic with Weather Data Fetching",
+            "description": "Connect the refresh button and auto-refresh hook to the weather data fetching logic in the main weather component",
+            "dependencies": [
+              "9.1",
+              "9.2",
+              "9.3"
+            ],
+            "details": "Import RefreshButton and useAutoRefresh in the main weather component. Create refreshWeatherData async function that fetches new weather data. Pass refreshWeatherData to RefreshButton's onRefresh prop. Set up useAutoRefresh with 10-minute interval (600000ms) calling refreshWeatherData. Ensure manual refresh resets the auto-refresh timer to prevent overlapping requests.",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Implement Dark Mode and Responsive Design",
+        "description": "Add system-aware dark mode support with manual toggle, responsive layouts for all screen sizes, and proper theming using CSS custom properties.",
+        "details": "Implement theme provider and responsive styles:\n\n// app/layout.tsx\nimport { ThemeProvider } from '@/components/theme-provider';\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html lang=\"en\" suppressHydrationWarning>\n      <body>\n        <ThemeProvider attribute=\"class\" defaultTheme=\"system\" enableSystem>\n          {children}\n        </ThemeProvider>\n      </body>\n    </html>\n  );\n}\n\n// globals.css\n@layer base {\n  :root {\n    --background: 0 0% 100%;\n    --foreground: 222.2 84% 4.9%;\n    --card: 0 0% 100%;\n    --card-foreground: 222.2 84% 4.9%;\n    --primary: 222.2 47.4% 11.2%;\n    --muted: 210 40% 96.1%;\n    --muted-foreground: 215.4 16.3% 46.9%;\n  }\n  \n  .dark {\n    --background: 222.2 84% 4.9%;\n    --foreground: 210 40% 98%;\n    --card: 222.2 84% 4.9%;\n    --card-foreground: 210 40% 98%;\n    --primary: 210 40% 98%;\n    --muted: 217.2 32.6% 17.5%;\n    --muted-foreground: 215 20.2% 65.1%;\n  }\n}\n\n// Responsive breakpoints\n@media (max-width: 767px) { /* Mobile */ }\n@media (min-width: 768px) and (max-width: 1023px) { /* Tablet */ }\n@media (min-width: 1024px) { /* Desktop */ }",
+        "testStrategy": "Test theme switching between light/dark/system modes. Verify contrast ratios meet AA standards (4.5:1). Test responsive layouts at 320px, 768px, 1024px breakpoints. Verify touch targets are minimum 44x44px on mobile.",
+        "priority": "low",
+        "dependencies": [
+          7
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create ThemeProvider Component with Context",
+            "description": "Implement a React context-based theme provider component that manages theme state (light/dark/system) and provides theme switching functionality throughout the application",
+            "dependencies": [],
+            "details": "Create components/theme-provider.tsx with React context to manage theme state. Implement useTheme hook for accessing theme context. Add logic to detect system theme preference using window.matchMedia('(prefers-color-scheme: dark)'). Store theme preference in localStorage for persistence. Handle SSR hydration by suppressing hydration warnings on the html element.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Configure CSS Custom Properties for Theming",
+            "description": "Set up CSS custom properties (CSS variables) for light and dark themes in globals.css, defining color schemes for backgrounds, foregrounds, cards, and other UI elements",
+            "dependencies": [],
+            "details": "Define CSS custom properties in :root for light theme colors (background, foreground, card, primary, muted, etc.) using HSL values. Create .dark class with corresponding dark theme values. Ensure proper color contrast ratios meet WCAG AA standards (4.5:1 for normal text). Add transition properties for smooth theme switching animations. Configure Tailwind to use CSS variables for dynamic theming.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Theme Toggle Component",
+            "description": "Create a theme toggle UI component with buttons/dropdown to switch between light, dark, and system themes with appropriate icons and visual feedback",
+            "dependencies": [
+              "10.1",
+              "10.2"
+            ],
+            "details": "Create components/theme-toggle.tsx using shadcn/ui Button and DropdownMenu components. Add icons for sun (light), moon (dark), and laptop (system) modes. Implement onClick handlers to call theme switching functions from ThemeProvider context. Add visual indicators for currently active theme. Ensure component is keyboard accessible and includes proper ARIA labels.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Configure Responsive Breakpoints and Mobile Styles",
+            "description": "Set up responsive design breakpoints and implement mobile-first responsive styles for all screen sizes including mobile, tablet, and desktop layouts",
+            "dependencies": [
+              "10.2"
+            ],
+            "details": "Define responsive breakpoints in Tailwind config: mobile (max-767px), tablet (768px-1023px), desktop (1024px+). Create responsive utility classes for common layout patterns (container widths, padding, grid layouts). Implement responsive font sizes using clamp() or responsive scale. Ensure touch targets are minimum 44x44px on mobile devices. Add viewport meta tag and test on various device sizes.",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Create API Route and Error Boundaries",
+        "description": "Implement Next.js API route for weather data proxy and comprehensive error boundaries for graceful error handling.",
+        "details": "Create app/api/weather/route.ts:\n\nimport { NextRequest, NextResponse } from 'next/server';\nimport { z } from 'zod';\n\nconst QuerySchema = z.object({\n  lat: z.coerce.number().min(-90).max(90),\n  lon: z.coerce.number().min(-180).max(180),\n  units: z.enum(['celsius', 'fahrenheit']).optional()\n});\n\nexport async function GET(request: NextRequest) {\n  try {\n    const { searchParams } = new URL(request.url);\n    const query = QuerySchema.parse(Object.fromEntries(searchParams));\n    \n    const weatherData = await fetchWeatherData(query.lat, query.lon, query.units);\n    \n    return NextResponse.json({\n      success: true,\n      data: weatherData\n    });\n  } catch (error) {\n    if (error instanceof z.ZodError) {\n      return NextResponse.json(\n        { error: 'Invalid coordinates', details: error.errors },\n        { status: 400 }\n      );\n    }\n    \n    return NextResponse.json(\n      { error: 'Failed to fetch weather data' },\n      { status: 500 }\n    );\n  }\n}\n\n// app/error.tsx\n'use client';\nexport default function Error({ error, reset }: { error: Error; reset: () => void }) {\n  return (\n    <div className=\"flex flex-col items-center justify-center min-h-screen\">\n      <h2 className=\"text-2xl font-bold mb-4\">Something went wrong!</h2>\n      <Button onClick={reset}>Try again</Button>\n    </div>\n  );\n}",
+        "testStrategy": "Test API route with valid/invalid coordinates. Verify error boundaries catch component errors. Test 400/500 error responses. Validate CORS headers if needed. Test graceful degradation with cached data.",
+        "priority": "high",
+        "dependencies": [
+          5,
+          6
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Next.js API Route with Validation",
+            "description": "Implement the weather API route at app/api/weather/route.ts with proper request handling, coordinate validation using Zod schemas, and structured JSON responses for both success and error cases.",
+            "dependencies": [],
+            "details": "Set up the GET handler in app/api/weather/route.ts with NextRequest/NextResponse. Parse searchParams for lat/lon/units parameters. Implement QuerySchema using Zod with coordinate bounds validation (-90 to 90 for lat, -180 to 180 for lon). Return standardized JSON responses with success/error flags and appropriate HTTP status codes.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Weather Data Fetching Logic",
+            "description": "Create the fetchWeatherData function that integrates with the weather service layer, handles API timeouts, transforms data to the required format, and manages error propagation.",
+            "dependencies": [
+              "11.1"
+            ],
+            "details": "Implement fetchWeatherData function within the API route or as a separate utility. Connect to the weather service created in task 5. Handle unit conversion if needed (celsius/fahrenheit). Implement timeout handling using AbortController. Transform Open-Meteo response to match frontend expectations. Add proper error handling for network failures and invalid responses.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create Error Boundary Component",
+            "description": "Build the client-side error boundary component at app/error.tsx with user-friendly error display, retry functionality, and proper styling using the UI components.",
+            "dependencies": [],
+            "details": "Create app/error.tsx as a client component with 'use client' directive. Accept error and reset props with proper TypeScript types. Design error UI with centered layout, clear error messaging, and styled retry button. Import and use Button component from UI library. Add responsive styling with Tailwind classes for mobile/desktop views.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Add Global Error Handling and Fallback UI",
+            "description": "Implement comprehensive error handling strategies including API error responses, network failure fallbacks, loading states, and graceful degradation with cached data when available.",
+            "dependencies": [
+              "11.1",
+              "11.2",
+              "11.3"
+            ],
+            "details": "Configure global error handling in app/layout.tsx if needed. Implement specific error responses for different scenarios (400 for validation, 500 for server errors, 503 for service unavailable). Add CORS headers if required for cross-origin requests. Create fallback UI states for network failures. Implement cache-based fallback when fresh data unavailable. Test error boundaries with intentional failures.",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Add Offline Support and Network Detection",
+        "description": "Implement offline detection, cached data display when offline, and automatic recovery when connection is restored.",
+        "details": "Create components/weather/offline-indicator.tsx and network detection:\n\n'use client';\nimport { useEffect, useState } from 'react';\nimport { Alert, AlertDescription } from '@/components/ui/alert';\n\nexport function OfflineIndicator({ lastUpdate }: { lastUpdate?: number }) {\n  const [isOnline, setIsOnline] = useState(true);\n  \n  useEffect(() => {\n    const updateOnlineStatus = () => {\n      setIsOnline(navigator.onLine);\n    };\n    \n    setIsOnline(navigator.onLine);\n    \n    window.addEventListener('online', updateOnlineStatus);\n    window.addEventListener('offline', updateOnlineStatus);\n    \n    return () => {\n      window.removeEventListener('online', updateOnlineStatus);\n      window.removeEventListener('offline', updateOnlineStatus);\n    };\n  }, []);\n  \n  if (isOnline) return null;\n  \n  return (\n    <Alert className=\"mb-4\">\n      <AlertDescription>\n        No internet connection. \n        {lastUpdate && `Showing data from ${new Date(lastUpdate).toLocaleTimeString()}`}\n      </AlertDescription>\n    </Alert>\n  );\n}\n\n// Add to main component\nexport function WeatherDisplay() {\n  const [isOnline, setIsOnline] = useState(true);\n  \n  useEffect(() => {\n    const handleOnline = () => {\n      setIsOnline(true);\n      // Auto-refresh when back online\n      refreshWeatherData();\n    };\n    \n    const handleOffline = () => setIsOnline(false);\n    \n    window.addEventListener('online', handleOnline);\n    window.addEventListener('offline', handleOffline);\n  }, []);\n}",
+        "testStrategy": "Test offline banner appears when disconnected. Verify cached data displays with timestamp. Test auto-refresh when connection restored. Verify refresh button disabled when offline. Test airplane mode scenarios.",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create OfflineIndicator Component",
+            "description": "Build the OfflineIndicator React component that displays an alert banner when the browser detects no internet connection, showing the last update timestamp when available.",
+            "dependencies": [],
+            "details": "Create components/weather/offline-indicator.tsx with the provided component structure. Implement useEffect hook to listen for online/offline events. Add Alert component to display offline status with optional last update time. Ensure component only renders when offline and properly cleans up event listeners on unmount.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Network Status Detection Hook",
+            "description": "Create a custom React hook that manages network status detection, providing isOnline state and handling browser online/offline events with proper lifecycle management.",
+            "dependencies": [],
+            "details": "Build useNetworkStatus hook in lib/hooks/use-network-status.ts that encapsulates online/offline detection logic. Return isOnline boolean state and lastOnlineTime timestamp. Handle initial state from navigator.onLine and update on network events. Export hook for use in multiple components throughout the application.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Add Cache Fallback for Offline Mode",
+            "description": "Implement cache fallback mechanism to display previously fetched weather data when offline, including timestamp tracking and cache validity checks.",
+            "dependencies": [
+              "12.2"
+            ],
+            "details": "Extend existing cache system to persist weather data with timestamps. Modify weather fetching logic to check cache first when offline. Store last successful fetch timestamp alongside weather data. Ensure cached data is served with appropriate offline indicators. Validate cache entries are within acceptable TTL even when offline.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Create Auto-Recovery Logic",
+            "description": "Implement automatic data refresh when internet connection is restored, including retry logic and user notifications for seamless recovery.",
+            "dependencies": [
+              "12.1",
+              "12.2",
+              "12.3"
+            ],
+            "details": "Add event handler for 'online' event that triggers automatic weather data refresh. Implement retry mechanism with exponential backoff for failed requests. Show loading state during recovery attempts. Update UI to reflect fresh data once connection is restored. Ensure refresh doesn't trigger if data is still within cache TTL.",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-27T22:26:23.724Z",
+      "updated": "2025-08-28T00:04:26.665Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

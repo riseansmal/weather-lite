@@ -1,0 +1,1898 @@
+# Modern Weather Application Product Requirements Document
+
+## Document Metadata
+- **Version**: 1.0.0
+- **Status**: Draft
+- **Owner**: Internal Development Team
+- **Last Updated**: 2024-12-19
+- **Priority**: P2-Medium
+- **Target Deployment**: Internal macOS deployment
+
+---
+
+## Executive Summary (BLUF)
+
+**A lightweight, self-contained weather application for internal use that provides real-time weather data through browser geolocation and the free Open-Meteo API, requiring zero external dependencies or API keys.**
+- **Primary Objective**: Deliver weather information for daily planning with <30 second interaction time for internal team use on macOS
+- **Key Value**: Zero operational cost, no API key management, completely self-contained deployment
+- **Success Metric**: <2 second load time on 3G, successful geolocation acquisition rate >80%
+
+---
+
+## Context and Business Rationale
+
+### Problem Statement
+Internal team requires quick access to weather information for daily commute and activity planning without relying on external weather websites that include advertisements, require accounts, or track user data. Current solutions require multiple services, API keys, or external dependencies that complicate deployment and maintenance for a simple internal tool.
+
+### Business Context
+- **Market Opportunity**: Not applicable - internal tool only
+- **Strategic Alignment**: Supports team productivity by providing frictionless weather access without leaving internal network or managing external accounts
+- **Trade-offs Considered**: 
+  - Commercial weather APIs (rejected: require API keys and billing)
+  - Native mobile apps (rejected: requires app distribution and updates)
+  - Browser bookmarks to weather sites (rejected: ads, tracking, slower than dedicated tool)
+  - Self-hosted weather station (rejected: hardware complexity and cost)
+
+### Constraints and Dependencies
+- **Technical Constraints**: 
+  - Must run on macOS environment
+  - Bundle size <100KB gzipped JavaScript
+  - No database or persistent storage
+  - Must work with last 2 browser versions
+  - iOS Safari 15+ compatibility required
+- **Business Constraints**: 
+  - Zero monetary cost for operation
+  - No API keys or external service accounts
+  - Single developer maintenance capability
+  - Must deploy on existing internal infrastructure
+- **External Dependencies**: 
+  - Open-Meteo API (free, no authentication required)
+  - Browser Geolocation API
+  - Internet connectivity for API calls
+
+---
+
+## User Personas and Stories
+
+### Primary Persona
+- **Type**: Internal team member
+- **Goals**: Check weather quickly (under 30 seconds) for commute and activity planning
+- **Pain Points**: Current weather sites have ads, require scrolling, load slowly, track user data
+- **Technical Proficiency**: Basic to intermediate, comfortable with web applications
+- **Usage Pattern**: 1-2 times daily, primarily morning and evening, brief sessions
+
+### User Stories
+
+**US-001**: View Current Weather
+- **Story**: As an internal user, I want to see current weather conditions immediately upon opening the app so that I can make quick decisions about my commute
+- **Acceptance Criteria**:
+  - [ ] Current temperature displays within 2 seconds of page load
+  - [ ] Weather condition (sunny, cloudy, rainy) shown with clear icon/text
+  - [ ] "Feels like" temperature included for actual comfort assessment
+  - [ ] Data age indicator shows if information is older than 10 minutes
+  - [ ] Location name clearly displayed above weather data
+- **Priority**: P0
+- **Dependencies**: US-002
+
+**US-002**: Automatic Location Detection
+- **Story**: As an internal user, I want the app to automatically detect my location so that I don't need to manually enter it each time
+- **Acceptance Criteria**:
+  - [ ] Browser geolocation permission requested on first load
+  - [ ] Permission state clearly indicated (granted/denied/pending)
+  - [ ] Fallback to IP geolocation if browser location denied
+  - [ ] Default to San Francisco, California if all location methods fail
+  - [ ] Location acquisition completes within 5 seconds
+- **Priority**: P0
+- **Dependencies**: None
+
+**US-003**: Manual Location Entry
+- **Story**: As an internal user, I want to manually enter a city name so that I can check weather for other locations
+- **Acceptance Criteria**:
+  - [ ] Text input field accepts city names
+  - [ ] Search triggers on Enter key or button click
+  - [ ] Clear error message if city not found
+  - [ ] Previously detected location remains if search fails
+  - [ ] Input field shows placeholder text "Enter city name..."
+- **Priority**: P1
+- **Dependencies**: None
+
+**US-004**: View Weather Forecast
+- **Story**: As an internal user, I want to see a 5-day weather forecast so that I can plan activities for the week
+- **Acceptance Criteria**:
+  - [ ] 5 forecast cards displayed horizontally (scrollable on mobile)
+  - [ ] Each card shows: date, high/low temp, weather condition
+  - [ ] Today's forecast clearly marked as "Today"
+  - [ ] Weekend days visually distinguished
+  - [ ] Forecast loads within 3 seconds of current weather
+- **Priority**: P1
+- **Dependencies**: US-001, US-002
+
+**US-005**: Refresh Weather Data
+- **Story**: As an internal user, I want to manually refresh weather data so that I can get the latest information on demand
+- **Acceptance Criteria**:
+  - [ ] Refresh button clearly visible near current weather
+  - [ ] Loading state shown during refresh (skeleton/spinner)
+  - [ ] Timestamp updates after successful refresh
+  - [ ] Error message if refresh fails after 3 attempts
+  - [ ] Refresh disabled for 10 seconds after use (debounce)
+- **Priority**: P1
+- **Dependencies**: US-001
+
+**US-006**: Auto-Refresh Weather
+- **Story**: As an internal user, I want weather data to automatically update so that I always see current information during extended sessions
+- **Acceptance Criteria**:
+  - [ ] Data refreshes every 10 minutes automatically
+  - [ ] No visual disruption during background refresh
+  - [ ] Auto-refresh pauses when tab not visible
+  - [ ] Manual refresh resets auto-refresh timer
+  - [ ] Subtle animation when data updates
+- **Priority**: P2
+- **Dependencies**: US-005
+
+**US-007**: Mobile Responsive Design
+- **Story**: As an internal user, I want to view the weather app on my phone so that I can check weather on any device
+- **Acceptance Criteria**:
+  - [ ] Layout adapts to screen widths 320px to 2560px
+  - [ ] Touch targets minimum 44x44px on mobile
+  - [ ] Forecast cards scroll horizontally on small screens
+  - [ ] Text remains readable without zooming
+  - [ ] Pull-to-refresh gesture works on mobile browsers
+- **Priority**: P1
+- **Dependencies**: None
+
+**US-008**: Dark Mode Support
+- **Story**: As an internal user, I want dark mode support so that I can comfortably view weather in low-light conditions
+- **Acceptance Criteria**:
+  - [ ] Automatically matches system preference
+  - [ ] Manual toggle available in UI
+  - [ ] All text maintains AA contrast ratios
+  - [ ] Smooth transition between modes
+  - [ ] Preference persists during session
+- **Priority**: P2
+- **Dependencies**: None
+
+**US-009**: Offline Indication
+- **Story**: As an internal user, I want to know when the app is offline so that I understand why data isn't updating
+- **Acceptance Criteria**:
+  - [ ] Clear offline indicator when no connection
+  - [ ] Last fetched data remains visible with timestamp
+  - [ ] Retry button appears when offline
+  - [ ] Automatic retry when connection restored
+  - [ ] Offline state doesn't break UI layout
+- **Priority**: P1
+- **Dependencies**: US-001, US-005
+
+**US-010**: Loading States
+- **Story**: As an internal user, I want to see loading indicators so that I know the app is working
+- **Acceptance Criteria**:
+  - [ ] Skeleton screens during initial load
+  - [ ] Progress indicator for location acquisition
+  - [ ] Spinner/animation during data refresh
+  - [ ] Loading states match final content layout
+  - [ ] No layout shift when content loads
+- **Priority**: P1
+- **Dependencies**: None
+
+## Functional Requirements
+
+### FR-001: Browser Geolocation Acquisition
+- **Description**: System must request and handle browser geolocation API permission to automatically detect user's current location
+- **Input Specifications**:
+  - Permission Request: Browser permission dialog trigger
+  - Timeout: 5000ms maximum wait time
+  - High Accuracy: Enable high accuracy mode
+  - Maximum Age: 300000ms (5 minutes) for cached position
+- **Processing Logic**:
+  1. Check if geolocation API is available in browser
+  2. Request permission with `getCurrentPosition()`
+  3. If granted, extract latitude and longitude
+  4. If denied, set flag and proceed to fallback
+  5. If timeout, proceed to fallback
+  6. Store coordinates in component state
+- **Output Specifications**:
+  - Success Response: `{latitude: number, longitude: number, source: 'gps'}`
+  - Error Responses: 
+    - Permission Denied: `{error: 'PERMISSION_DENIED', code: 1}`
+    - Timeout: `{error: 'TIMEOUT', code: 3}`
+    - Unavailable: `{error: 'POSITION_UNAVAILABLE', code: 2}`
+- **Performance Requirements**:
+  - Response Time: <5 seconds for permission and position
+  - Success Rate: >80% for users who grant permission
+  - Fallback Trigger: Within 100ms of failure
+
+### FR-002: IP-Based Location Fallback
+- **Description**: When browser geolocation fails, system attempts IP-based geolocation using a free service
+- **Input Specifications**:
+  - Trigger: Geolocation API failure or denial
+  - Service: ip-api.com or similar free service
+  - Timeout: 3000ms
+- **Processing Logic**:
+  1. Send request to `http://ip-api.com/json/`
+  2. Extract city, region, country, lat, lon from response
+  3. Validate response has required fields
+  4. If valid, use coordinates for weather lookup
+  5. If invalid or timeout, proceed to default location
+- **Output Specifications**:
+  - Success Response: `{latitude: number, longitude: number, city: string, source: 'ip'}`
+  - Error Response: `{error: 'IP_LOCATION_FAILED', fallback: true}`
+- **Performance Requirements**:
+  - Response Time: <3 seconds
+  - Success Rate: >95% when internet available
+  - Cache Duration: Session-based (no persistence)
+
+### FR-003: Default Location Configuration
+- **Description**: System uses configured default location when all automatic location methods fail
+- **Input Specifications**:
+  - Environment Variables:
+    - `NEXT_PUBLIC_DEFAULT_CITY`: String (default: "San Francisco, California")
+    - `NEXT_PUBLIC_DEFAULT_LAT`: Number (default: 37.7749)
+    - `NEXT_PUBLIC_DEFAULT_LON`: Number (default: -122.4194)
+- **Processing Logic**:
+  1. Read environment variables at build time
+  2. Validate coordinates are within valid ranges
+  3. Use as fallback when other methods fail
+  4. Display location source indicator to user
+- **Output Specifications**:
+  - Response: `{latitude: number, longitude: number, city: string, source: 'default'}`
+- **Performance Requirements**:
+  - Access Time: <1ms (pre-loaded)
+  - Availability: 100% (hard-coded fallback)
+
+### FR-004: Manual City Search
+- **Description**: Users can manually search for weather by entering a city name
+- **Input Specifications**:
+  - Text Input: City name string, 2-100 characters
+  - Validation: Trim whitespace, basic sanitization
+  - Trigger: Enter key or search button click
+- **Processing Logic**:
+  1. Sanitize and validate input string
+  2. Call Open-Meteo geocoding API
+  3. Use first result if multiple matches
+  4. Update location state with coordinates
+  5. Trigger weather data fetch
+  6. Display error if no results found
+- **Output Specifications**:
+  - Success: Updates current location and fetches weather
+  - Error: "City not found. Please try another name."
+- **Performance Requirements**:
+  - Geocoding Response: <2 seconds
+  - Debounce: 10 seconds between searches
+  - Result Display: <500ms after API response
+
+### FR-005: Weather Data Fetching
+- **Description**: Fetch current weather and forecast from Open-Meteo API
+- **Input Specifications**:
+  - Coordinates: Latitude and longitude (required)
+  - Parameters:
+    - current_weather: true
+    - temperature_unit: celsius (from env var)
+    - hourly: temperature_2m, apparent_temperature
+    - daily: temperature_2m_max, temperature_2m_min, weathercode
+    - timezone: auto
+    - forecast_days: 5
+- **Processing Logic**:
+  1. Construct API URL with parameters
+  2. Make fetch request with 10-second timeout
+  3. Validate response with Zod schema
+  4. Transform weather codes to readable conditions
+  5. Cache response with timestamp
+  6. Return formatted data
+- **Output Specifications**:
+  - Success Response:
+    ```json
+    {
+      "current": {
+        "temperature": 22.5,
+        "apparent_temperature": 21.0,
+        "weathercode": 1,
+        "condition": "Partly Cloudy"
+      },
+      "forecast": [
+        {
+          "date": "2024-12-20",
+          "temp_max": 25.0,
+          "temp_min": 18.0,
+          "weathercode": 0,
+          "condition": "Clear"
+        }
+      ],
+      "timestamp": 1703001234567
+    }
+    ```
+  - Error Response: Cached data if available, else error state
+- **Performance Requirements**:
+  - Response Time: <2 seconds average, <10 seconds max
+  - Cache TTL: 600 seconds (10 minutes)
+  - Retry Logic: Exponential backoff (1s, 2s, 4s) for 3 attempts
+
+### FR-006: Weather Code Translation
+- **Description**: Convert Open-Meteo weather codes to human-readable conditions and icons
+- **Input Specifications**:
+  - Weather Code: Integer 0-99 from API
+  - Time of Day: For appropriate icon selection
+- **Processing Logic**:
+  1. Map weather code to condition string
+  2. Select appropriate icon/emoji
+  3. Determine severity level (clear, cloudy, rain, storm)
+  4. Apply to both current and forecast displays
+- **Output Specifications**:
+  - Mapping:
+    - 0: "Clear Sky" ☀️
+    - 1-3: "Partly Cloudy" ⛅
+    - 45-48: "Foggy" 🌫️
+    - 51-57: "Drizzle" 🌦️
+    - 61-67: "Rain" 🌧️
+    - 71-77: "Snow" ❄️
+    - 80-82: "Showers" 🌦️
+    - 95-99: "Thunderstorm" ⛈️
+- **Performance Requirements**:
+  - Translation Time: <1ms
+  - Memory Usage: <10KB for mapping table
+
+### FR-007: Data Caching Mechanism
+- **Description**: Implement in-memory cache for weather data to reduce API calls
+- **Input Specifications**:
+  - Cache Key: `${latitude}-${longitude}`
+  - TTL: 600 seconds (10 minutes)
+  - Max Entries: 10 locations
+- **Processing Logic**:
+  1. Check cache before API call
+  2. Validate cache entry age
+  3. Return cached data if valid
+  4. Update cache after successful fetch
+  5. Implement LRU eviction for >10 entries
+  6. Clear cache on page refresh
+- **Output Specifications**:
+  - Cache Hit: Return data immediately with cached flag
+  - Cache Miss: Proceed with API call
+  - Cache Structure: Map<string, {data: WeatherData, timestamp: number}>
+- **Performance Requirements**:
+  - Cache Lookup: <1ms
+  - Memory Limit: <100KB total cache size
+  - Hit Rate: >50% during active session
+
+### FR-008: Manual Refresh Functionality
+- **Description**: Allow users to manually trigger weather data refresh
+- **Input Specifications**:
+  - Trigger: Button click or pull-to-refresh gesture
+  - Debounce: 10 seconds between refreshes
+- **Processing Logic**:
+  1. Disable refresh button temporarily
+  2. Show loading indicator
+  3. Clear cache for current location
+  4. Fetch fresh data from API
+  5. Update UI with new data
+  6. Update timestamp display
+  7. Re-enable button after 10 seconds
+- **Output Specifications**:
+  - Success: Updated weather data and timestamp
+  - Error: Show error message, keep old data visible
+  - Loading State: Skeleton or spinner overlay
+- **Performance Requirements**:
+  - Refresh Time: <3 seconds total
+  - Debounce Period: 10000ms
+  - Visual Feedback: <100ms to show loading state
+
+### FR-009: Auto-Refresh Timer
+- **Description**: Automatically refresh weather data at regular intervals
+- **Input Specifications**:
+  - Interval: 600000ms (10 minutes)
+  - Visibility API: Pause when tab not visible
+- **Processing Logic**:
+  1. Set interval timer on component mount
+  2. Check document visibility state
+  3. Pause timer when document hidden
+  4. Resume timer when document visible
+  5. Reset timer on manual refresh
+  6. Clean up timer on unmount
+- **Output Specifications**:
+  - Silent update of weather data
+  - Subtle animation on data change
+  - No interruption to user interaction
+- **Performance Requirements**:
+  - Timer Accuracy: ±1 second
+  - Memory Impact: <1KB for timer
+  - CPU Usage: <0.1% when idle
+
+### FR-010: Responsive Layout System
+- **Description**: Adapt UI layout based on viewport size and orientation
+- **Input Specifications**:
+  - Breakpoints:
+    - Mobile: 320px - 767px
+    - Tablet: 768px - 1023px
+    - Desktop: 1024px+
+- **Processing Logic**:
+  1. Use CSS Grid for main layout
+  2. Flexbox for component layouts
+  3. Media queries for breakpoints
+  4. Container queries for components
+  5. Horizontal scroll for forecast cards on mobile
+- **Output Specifications**:
+  - Mobile: Single column, stacked elements
+  - Tablet: Two-column for current/forecast
+  - Desktop: Three-section layout
+- **Performance Requirements**:
+  - Layout Shift: CLS <0.1
+  - Resize Response: <16ms (60fps)
+  - Touch Targets: Minimum 44x44px
+
+### FR-011: Theme Management
+- **Description**: Support light and dark themes with system preference detection
+- **Input Specifications**:
+  - System Preference: prefers-color-scheme media query
+  - Manual Override: Toggle button in UI
+  - Storage: Session-based preference
+- **Processing Logic**:
+  1. Detect system preference on load
+  2. Apply theme via CSS custom properties
+  3. Listen for system preference changes
+  4. Allow manual toggle override
+  5. Smooth transition between themes
+- **Output Specifications**:
+  - CSS Variables:
+    - `--bg-primary`: Background color
+    - `--text-primary`: Text color
+    - `--border-color`: Border color
+    - Additional semantic colors
+- **Performance Requirements**:
+  - Theme Switch: <100ms transition
+  - No Flash: Prevent white flash on load
+  - Contrast Ratios: Minimum AA compliance
+
+### FR-012: Temperature Unit Configuration
+- **Description**: Display temperatures in Celsius as configured via environment variable
+- **Input Specifications**:
+  - Environment Variable: `NEXT_PUBLIC_TEMP_UNIT` (celsius/fahrenheit)
+  - Default: celsius
+- **Processing Logic**:
+  1. Read configuration at build time
+  2. Pass unit parameter to API
+  3. Display with appropriate symbol (°C/°F)
+  4. No runtime conversion needed (API handles)
+- **Output Specifications**:
+  - Display Format: `22°C` or `72°F`
+  - Consistent across all temperature displays
+- **Performance Requirements**:
+  - Configuration Load: Build-time only
+  - Display Render: <1ms
+
+---
+
+## Non-Functional Requirements
+
+### NFR-001: Performance - Initial Load Time
+- **Requirement**: Application must achieve interactive state within 2 seconds on 3G network
+- **Acceptance Criteria**: 
+  - Time to Interactive (TTI) <2000ms on simulated 3G
+  - First Contentful Paint (FCP) <1000ms
+  - Largest Contentful Paint (LCP) <1500ms
+- **Testing Method**: Chrome DevTools Network throttling (Fast 3G preset)
+- **Monitoring**: Performance timing API measurements in production
+
+### NFR-002: Performance - Bundle Size
+- **Requirement**: Total JavaScript bundle must be under 100KB gzipped
+- **Acceptance Criteria**:
+  - Initial JS bundle <50KB gzipped
+  - Total JS (with chunks) <100KB gzipped
+  - CSS bundle <20KB gzipped
+- **Testing Method**: Next.js build analysis, webpack-bundle-analyzer
+- **Monitoring**: Build-time bundle size reporting
+
+### NFR-003: Accessibility - Basic Standards
+- **Requirement**: Application must follow basic web accessibility best practices
+- **Acceptance Criteria**:
+  - All interactive elements keyboard accessible
+  - Proper ARIA labels on buttons and inputs
+  - Color contrast ratios meet AA standards (4.5:1)
+  - Focus indicators visible
+  - Semantic HTML structure
+- **Testing Method**: axe DevTools, manual keyboard navigation
+- **Monitoring**: Automated accessibility testing in CI
+
+### NFR-004: Browser Compatibility
+- **Requirement**: Support last 2 major versions of modern browsers
+- **Acceptance Criteria**:
+  - Chrome/Edge: Last 2 versions
+  - Safari: Last 2 versions  
+  - Firefox: Last 2 versions
+  - iOS Safari: 15+
+  - Mobile Chrome: Last 2 versions
+- **Testing Method**: Cross-browser testing, BrowserStack for verification
+- **Monitoring**: Error tracking for unsupported browser detection
+
+### NFR-005: Reliability - Availability
+- **Requirement**: Application must gracefully handle API failures and network issues
+- **Acceptance Criteria**:
+  - Cached data displayed when API unavailable
+  - Clear error messages for failures
+  - Automatic retry with exponential backoff
+  - No JavaScript errors in console during failures
+- **Testing Method**: Simulate network failures, API timeouts
+- **Monitoring**: Console error logging, manual testing
+
+### NFR-006: Security - Content Security
+- **Requirement**: Implement basic security headers and practices
+- **Acceptance Criteria**:
+  - Content Security Policy headers configured
+  - HTTPS-only deployment
+  - Input sanitization for city search
+  - No inline scripts or styles
+  - XSS protection headers
+- **Testing Method**: Security headers validation, manual penetration testing
+- **Monitoring**: Browser console for CSP violations
+
+### NFR-007: Maintainability - Code Quality
+- **Requirement**: Code must be maintainable by single developer
+- **Acceptance Criteria**:
+  - TypeScript strict mode enabled
+  - ESLint rules configured and passing
+  - Clear component structure
+  - Comprehensive inline documentation
+  - No complex abstractions
+- **Testing Method**: Code review, linting checks
+- **Monitoring**: Pre-commit hooks, CI/CD checks
+
+### NFR-008: Usability - Interaction Time
+- **Requirement**: Users must be able to view weather within 30 seconds
+- **Acceptance Criteria**:
+  - Weather visible within 3 clicks/taps
+  - No mandatory account creation
+  - No splash screens or modals
+  - Immediate data display (no loading screens >3s)
+- **Testing Method**: User journey timing, task completion tests
+- **Monitoring**: Session recordings, time-on-page metrics
+
+## Technical Specifications
+
+### Architecture Overview
+- **System Type**: Server-rendered React application with selective client components
+- **Technology Stack**:
+  - Frontend: Next.js 15.x with App Router
+  - Runtime: React 19.x with Server Components
+  - Language: TypeScript 5.x with strict mode
+  - Styling: Tailwind CSS 3.x with custom properties
+  - UI Components: shadcn/ui (Card, Button, Skeleton only)
+  - Validation: Zod 3.x for API response validation
+  - Build Tool: Turbopack (development), Webpack 5 (production)
+  - Package Manager: npm or pnpm
+- **Infrastructure**: 
+  - Deployment: Local macOS machine
+  - Server: Next.js built-in server (port 3000)
+  - No external services or databases
+
+### Project Structure
+```
+weather-app/
+├── app/
+│   ├── api/
+│   │   └── weather/
+│   │       └── route.ts          # Weather API proxy endpoint
+│   ├── layout.tsx                # Root layout with metadata
+│   ├── page.tsx                  # Main weather page (server component)
+│   ├── globals.css              # Global styles and CSS variables
+│   └── error.tsx                # Error boundary
+├── components/
+│   ├── ui/                      # shadcn/ui components
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── input.tsx
+│   │   └── skeleton.tsx
+│   └── weather/
+│       ├── weather-display.tsx  # Main weather component (client)
+│       ├── current-weather.tsx  # Current conditions display
+│       ├── forecast-card.tsx    # Individual forecast day
+│       ├── location-selector.tsx # Location input/detection
+│       ├── refresh-button.tsx   # Manual refresh control
+│       └── offline-indicator.tsx # Connection status
+├── lib/
+│   ├── weather.ts               # Weather API client and types
+│   ├── cache.ts                 # In-memory cache implementation
+│   ├── constants.ts             # Weather codes, config
+│   └── utils.ts                 # Helper functions
+├── public/
+│   └── manifest.json            # PWA manifest (optional)
+├── .env.local                   # Environment variables
+├── next.config.js               # Next.js configuration
+├── tailwind.config.ts           # Tailwind configuration
+└── tsconfig.json               # TypeScript configuration
+```
+
+### Component Architecture
+
+#### Server Components (Default)
+- `app/page.tsx` - Root page, handles initial render
+- `app/layout.tsx` - Layout with metadata, theme setup
+
+#### Client Components (Interactive)
+- `weather-display.tsx` - Main container with state management
+- `location-selector.tsx` - Geolocation and city search
+- `refresh-button.tsx` - Manual refresh with debouncing
+- All components in `/components/weather/`
+
+### Environment Configuration
+```bash
+# .env.local
+NEXT_PUBLIC_DEFAULT_CITY="San Francisco, California"
+NEXT_PUBLIC_DEFAULT_LAT=37.7749
+NEXT_PUBLIC_DEFAULT_LON=-122.4194
+NEXT_PUBLIC_TEMP_UNIT=celsius
+NEXT_PUBLIC_API_TIMEOUT=10000
+NEXT_PUBLIC_GEO_TIMEOUT=5000
+NEXT_PUBLIC_CACHE_TTL=600000
+NEXT_PUBLIC_REFRESH_INTERVAL=600000
+```
+
+---
+
+## API Specifications
+
+### Internal API Routes
+
+#### Endpoint: Weather Data Proxy
+- **Method**: GET
+- **Path**: `/api/weather`
+- **Authentication**: None (internal use only)
+- **Query Parameters**:
+  ```typescript
+  {
+    lat: number;      // Required, -90 to 90
+    lon: number;      // Required, -180 to 180
+    units?: 'celsius' | 'fahrenheit'; // Optional, default from env
+  }
+  ```
+- **Request Example**:
+  ```
+  GET /api/weather?lat=41.7151&lon=44.8271&units=celsius
+  ```
+- **Response Format**:
+  ```json
+  {
+    "success": {
+      "status": 200,
+      "data": {
+        "current": {
+          "temperature": 22.5,
+          "apparentTemperature": 21.0,
+          "weatherCode": 1,
+          "condition": "Partly Cloudy",
+          "time": "2024-12-20T10:00:00Z"
+        },
+        "forecast": [
+          {
+            "date": "2024-12-20",
+            "temperatureMax": 25.0,
+            "temperatureMin": 18.0,
+            "weatherCode": 0,
+            "condition": "Clear"
+          }
+        ],
+        "location": {
+          "latitude": 41.7151,
+          "longitude": 44.8271
+        },
+        "timestamp": 1703001234567
+      }
+    },
+    "error": {
+      "status": 500,
+      "message": "Failed to fetch weather data",
+      "details": {
+        "code": "API_ERROR",
+        "retry": true
+      }
+    }
+  }
+  ```
+- **Error Codes**:
+  - 400: Invalid coordinates
+  - 408: Request timeout
+  - 429: Rate limit exceeded
+  - 500: Internal server error
+  - 503: Service unavailable
+
+### External API Integration
+
+#### Open-Meteo Weather API
+- **Base URL**: `https://api.open-meteo.com/v1`
+- **Authentication**: None required
+- **Rate Limits**: No official limits
+
+##### Forecast Endpoint
+- **URL**: `https://api.open-meteo.com/v1/forecast`
+- **Method**: GET
+- **Parameters**:
+  ```typescript
+  {
+    latitude: number;
+    longitude: number;
+    current_weather: boolean;
+    temperature_unit: 'celsius' | 'fahrenheit';
+    hourly?: string[]; // "temperature_2m,apparent_temperature"
+    daily?: string[];  // "temperature_2m_max,temperature_2m_min,weathercode"
+    timezone?: string; // "auto"
+    forecast_days?: number; // 5
+  }
+  ```
+- **Response Schema**:
+  ```typescript
+  interface OpenMeteoResponse {
+    latitude: number;
+    longitude: number;
+    elevation: number;
+    current_weather: {
+      temperature: number;
+      windspeed: number;
+      weathercode: number;
+      time: string;
+    };
+    hourly?: {
+      time: string[];
+      temperature_2m: number[];
+      apparent_temperature: number[];
+    };
+    daily?: {
+      time: string[];
+      temperature_2m_max: number[];
+      temperature_2m_min: number[];
+      weathercode: number[];
+    };
+  }
+  ```
+
+##### Geocoding Endpoint
+- **URL**: `https://geocoding-api.open-meteo.com/v1/search`
+- **Method**: GET
+- **Parameters**:
+  ```typescript
+  {
+    name: string;     // City name to search
+    count?: number;   // Max results (default 10)
+    language?: string; // Language code (default 'en')
+  }
+  ```
+- **Response Schema**:
+  ```typescript
+  interface GeocodingResponse {
+    results?: Array<{
+      id: number;
+      name: string;
+      latitude: number;
+      longitude: number;
+      country: string;
+      admin1?: string; // State/Province
+    }>;
+  }
+  ```
+
+#### IP Geolocation API (Fallback)
+- **URL**: `http://ip-api.com/json/`
+- **Method**: GET
+- **Response Schema**:
+  ```typescript
+  interface IPLocationResponse {
+    status: 'success' | 'fail';
+    city: string;
+    regionName: string;
+    country: string;
+    lat: number;
+    lon: number;
+  }
+  ```
+
+---
+
+## Data Models
+
+### TypeScript Interfaces
+
+#### Entity: WeatherData
+```typescript
+interface WeatherData {
+  current: CurrentWeather;
+  forecast: ForecastDay[];
+  location: Location;
+  timestamp: number;
+  cached?: boolean;
+}
+
+interface CurrentWeather {
+  temperature: number;        // Celsius or Fahrenheit
+  apparentTemperature: number; // Feels-like temperature
+  weatherCode: number;         // WMO weather code
+  condition: string;           // Human-readable condition
+  time: string;               // ISO 8601 timestamp
+}
+
+interface ForecastDay {
+  date: string;               // YYYY-MM-DD
+  temperatureMax: number;
+  temperatureMin: number;
+  weatherCode: number;
+  condition: string;
+  dayName?: string;           // "Monday", "Today", etc.
+}
+
+interface Location {
+  latitude: number;           // -90 to 90
+  longitude: number;          // -180 to 180
+  city?: string;             // City name if available
+  source: 'gps' | 'ip' | 'manual' | 'default';
+}
+```
+
+#### Entity: CacheEntry
+```typescript
+interface CacheEntry {
+  key: string;               // "${lat}-${lon}"
+  data: WeatherData;
+  timestamp: number;         // Unix timestamp
+  expiresAt: number;        // Unix timestamp
+}
+
+class WeatherCache {
+  private cache: Map<string, CacheEntry>;
+  private maxEntries: number = 10;
+  private ttl: number = 600000; // 10 minutes
+  
+  get(key: string): WeatherData | null;
+  set(key: string, data: WeatherData): void;
+  clear(): void;
+  isExpired(entry: CacheEntry): boolean;
+}
+```
+
+#### Entity: AppState
+```typescript
+interface AppState {
+  weather: WeatherData | null;
+  loading: boolean;
+  error: ErrorState | null;
+  location: Location | null;
+  locationPermission: 'granted' | 'denied' | 'prompt' | null;
+  isOnline: boolean;
+  lastRefresh: number | null;
+  theme: 'light' | 'dark' | 'system';
+}
+
+interface ErrorState {
+  code: string;
+  message: string;
+  recoverable: boolean;
+  retry?: () => void;
+}
+```
+
+#### Entity: WeatherCode Mapping
+```typescript
+const WEATHER_CONDITIONS: Record<number, WeatherCondition> = {
+  0: { label: 'Clear Sky', icon: '☀️', severity: 'clear' },
+  1: { label: 'Mainly Clear', icon: '🌤️', severity: 'clear' },
+  2: { label: 'Partly Cloudy', icon: '⛅', severity: 'cloudy' },
+  3: { label: 'Overcast', icon: '☁️', severity: 'cloudy' },
+  45: { label: 'Foggy', icon: '🌫️', severity: 'cloudy' },
+  48: { label: 'Depositing Rime Fog', icon: '🌫️', severity: 'cloudy' },
+  51: { label: 'Light Drizzle', icon: '🌦️', severity: 'rain' },
+  53: { label: 'Moderate Drizzle', icon: '🌦️', severity: 'rain' },
+  55: { label: 'Dense Drizzle', icon: '🌦️', severity: 'rain' },
+  61: { label: 'Slight Rain', icon: '🌧️', severity: 'rain' },
+  63: { label: 'Moderate Rain', icon: '🌧️', severity: 'rain' },
+  65: { label: 'Heavy Rain', icon: '🌧️', severity: 'rain' },
+  71: { label: 'Slight Snow', icon: '🌨️', severity: 'snow' },
+  73: { label: 'Moderate Snow', icon: '❄️', severity: 'snow' },
+  75: { label: 'Heavy Snow', icon: '❄️', severity: 'snow' },
+  77: { label: 'Snow Grains', icon: '❄️', severity: 'snow' },
+  80: { label: 'Slight Showers', icon: '🌦️', severity: 'rain' },
+  81: { label: 'Moderate Showers', icon: '🌦️', severity: 'rain' },
+  82: { label: 'Violent Showers', icon: '🌦️', severity: 'rain' },
+  95: { label: 'Thunderstorm', icon: '⛈️', severity: 'storm' },
+  96: { label: 'Thunderstorm with Hail', icon: '⛈️', severity: 'storm' },
+  99: { label: 'Severe Thunderstorm', icon: '⛈️', severity: 'storm' }
+};
+
+interface WeatherCondition {
+  label: string;
+  icon: string;
+  severity: 'clear' | 'cloudy' | 'rain' | 'snow' | 'storm';
+}
+```
+
+### Zod Validation Schemas
+
+```typescript
+import { z } from 'zod';
+
+// API Response Validation
+const WeatherResponseSchema = z.object({
+  current_weather: z.object({
+    temperature: z.number(),
+    weathercode: z.number(),
+    time: z.string()
+  }),
+  hourly: z.object({
+    apparent_temperature: z.array(z.number())
+  }).optional(),
+  daily: z.object({
+    time: z.array(z.string()),
+    temperature_2m_max: z.array(z.number()),
+    temperature_2m_min: z.array(z.number()),
+    weathercode: z.array(z.number())
+  })
+});
+
+// User Input Validation
+const LocationSearchSchema = z.object({
+  query: z.string()
+    .min(2, 'City name must be at least 2 characters')
+    .max(100, 'City name too long')
+    .trim()
+});
+
+const CoordinatesSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lon: z.number().min(-180).max(180)
+});
+```
+
+---
+
+## State Management and Workflows
+
+### System States
+- **Initial**: Application loaded, no data fetched
+  - Entry: Page load
+  - Exit: Location acquired or skipped
+  
+- **LocationAcquisition**: Obtaining user location
+  - Entry: Initial state or manual location reset
+  - Exit: Location determined (any method) or all methods failed
+  
+- **DataFetching**: Retrieving weather information
+  - Entry: Location acquired or refresh triggered
+  - Exit: Data received or error after retries
+  
+- **DataDisplay**: Showing weather information
+  - Entry: Successful data fetch
+  - Exit: Refresh triggered or location changed
+  
+- **Error**: Displaying error state
+  - Entry: Unrecoverable error or max retries exceeded
+  - Exit: Manual retry or location change
+  
+- **Offline**: No network connectivity
+  - Entry: Network connection lost
+  - Exit: Connection restored
+
+### State Transitions
+```
+[Initial] → [LocationAcquisition]: On component mount
+[LocationAcquisition] → [DataFetching]: When location determined
+[LocationAcquisition] → [Error]: When all location methods fail
+[DataFetching] → [DataDisplay]: When data successfully fetched
+[DataFetching] → [Error]: When API calls fail after retries
+[DataFetching] → [Offline]: When network unavailable
+[DataDisplay] → [DataFetching]: When refresh triggered
+[DataDisplay] → [LocationAcquisition]: When location changed
+[DataDisplay] → [Offline]: When connection lost
+[Error] → [DataFetching]: When retry button clicked
+[Error] → [LocationAcquisition]: When location reset
+[Offline] → [DataFetching]: When connection restored
+[Offline] → [DataDisplay]: When showing cached data
+```
+
+### Location Acquisition Workflow
+```typescript
+async function acquireLocation(): Promise<Location> {
+  // Step 1: Try browser geolocation
+  try {
+    const position = await getCurrentPosition({
+      timeout: 5000,
+      enableHighAccuracy: true
+    });
+    return {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      source: 'gps'
+    };
+  } catch (error) {
+    // Step 2: Fall back to IP geolocation
+    try {
+      const ipLocation = await fetchIPLocation();
+      return {
+        latitude: ipLocation.lat,
+        longitude: ipLocation.lon,
+        city: ipLocation.city,
+        source: 'ip'
+      };
+    } catch {
+      // Step 3: Use default location
+      return {
+        latitude: DEFAULT_LAT,
+        longitude: DEFAULT_LON,
+        city: DEFAULT_CITY,
+        source: 'default'
+      };
+    }
+  }
+}
+```
+
+### Data Refresh Workflow
+```typescript
+async function refreshWeatherData(
+  location: Location,
+  retryCount = 0
+): Promise<WeatherData> {
+  const MAX_RETRIES = 3;
+  const BACKOFF_DELAYS = [1000, 2000, 4000];
+  
+  try {
+    // Check cache first
+    const cached = cache.get(location);
+    if (cached && !cache.isExpired(cached)) {
+      return { ...cached, cached: true };
+    }
+    
+    // Fetch fresh data
+    const response = await fetchWithTimeout('/api/weather', {
+      params: {
+        lat: location.latitude,
+        lon: location.longitude
+      },
+      timeout: 10000
+    });
+    
+    // Validate and cache
+    const validated = WeatherResponseSchema.parse(response);
+    const weatherData = transformResponse(validated);
+    cache.set(location, weatherData);
+    
+    return weatherData;
+    
+  } catch (error) {
+    if (retryCount < MAX_RETRIES) {
+      await delay(BACKOFF_DELAYS[retryCount]);
+      return refreshWeatherData(location, retryCount + 1);
+    }
+    
+    // Return cached data if available
+    const cached = cache.get(location);
+    if (cached) {
+      return { ...cached, cached: true, stale: true };
+    }
+    
+    throw error;
+  }
+}
+```
+
+## Edge Cases and Error Handling
+
+### Edge Case Category: Location Services
+
+#### EC-001: Geolocation Permission Denied
+- **Scenario**: User explicitly denies location permission when prompted by browser
+- **Trigger Conditions**: Navigator.geolocation.getCurrentPosition returns error code 1
+- **Expected Behavior**: 
+  - Display non-intrusive banner "Location access denied. Using approximate location."
+  - Automatically fall back to IP-based geolocation
+  - Show location source indicator near city name
+  - Allow manual city search as alternative
+- **Error Message**: "Location access denied. You can search for any city using the search box."
+- **Logging**: Console.info with permission state
+- **Recovery**: Proceed with fallback chain, no automatic retry
+
+#### EC-002: Geolocation Timeout
+- **Scenario**: GPS acquisition takes longer than 5 seconds
+- **Trigger Conditions**: getCurrentPosition timeout parameter exceeded
+- **Expected Behavior**:
+  - Cancel geolocation request
+  - Show brief loading message "Getting approximate location..."
+  - Proceed to IP geolocation immediately
+  - No error message to user unless all methods fail
+- **Error Message**: None (silent fallback)
+- **Logging**: Console.warn with timeout duration
+- **Recovery**: Automatic fallback to IP location
+
+#### EC-003: IP Geolocation Failure
+- **Scenario**: IP-based location service unavailable or returns error
+- **Trigger Conditions**: ip-api.com request fails or returns status:"fail"
+- **Expected Behavior**:
+  - Use default location (Tbilisi)
+  - Display location with indicator "(Default location)"
+  - Show info message about using default
+  - Search box remains functional
+- **Error Message**: "Using default location. Search for your city above."
+- **Logging**: Console.error with API response
+- **Recovery**: Use environment-configured default location
+
+#### EC-004: Invalid City Search
+- **Scenario**: User searches for non-existent or misspelled city
+- **Trigger Conditions**: Open-Meteo geocoding returns empty results array
+- **Expected Behavior**:
+  - Keep current location unchanged
+  - Show error below search box
+  - Clear error after 5 seconds or new search
+  - Suggest checking spelling
+- **Error Message**: "City not found. Please check the spelling and try again."
+- **Logging**: Console.info with search query
+- **Recovery**: Maintain previous valid location
+
+### Edge Case Category: API and Network
+
+#### EC-005: Open-Meteo API Timeout
+- **Scenario**: Weather API request exceeds 10-second timeout
+- **Trigger Conditions**: Fetch aborted after timeout threshold
+- **Expected Behavior**:
+  - Show cached data if available
+  - Display stale data indicator
+  - Automatic retry with exponential backoff
+  - Show retry button after 3 failed attempts
+- **Error Message**: "Weather data temporarily unavailable. Showing cached information."
+- **Logging**: Console.error with response time
+- **Recovery**: Exponential backoff retry (1s, 2s, 4s)
+
+#### EC-006: Malformed API Response
+- **Scenario**: Open-Meteo returns unexpected data structure
+- **Trigger Conditions**: Zod validation fails on API response
+- **Expected Behavior**:
+  - Prevent corrupt data display
+  - Show generic weather unavailable message
+  - Use cached data if valid
+  - Log validation errors for debugging
+- **Error Message**: "Weather service returned invalid data. Please try again."
+- **Logging**: Console.error with validation errors and raw response
+- **Recovery**: Retry once immediately, then manual retry only
+
+#### EC-007: Complete Network Offline
+- **Scenario**: Device has no internet connectivity
+- **Trigger Conditions**: Navigator.onLine = false or all fetches fail
+- **Expected Behavior**:
+  - Show offline indicator banner
+  - Display last cached data with timestamp
+  - Disable refresh button
+  - Monitor for connection restoration
+  - Auto-refresh when back online
+- **Error Message**: "No internet connection. Showing last available data from [timestamp]."
+- **Logging**: Console.info with offline state
+- **Recovery**: Automatic retry when navigator.onLine becomes true
+
+#### EC-008: Rate Limiting (Client-Side)
+- **Scenario**: User rapidly clicks refresh button
+- **Trigger Conditions**: Refresh attempted within 10-second debounce window
+- **Expected Behavior**:
+  - Disable refresh button with countdown
+  - Show remaining cooldown time
+  - Prevent API calls during cooldown
+  - Re-enable after timeout
+- **Error Message**: "Please wait [X] seconds before refreshing again."
+- **Logging**: None (expected behavior)
+- **Recovery**: Automatic re-enable after cooldown
+
+### Edge Case Category: Data Display
+
+#### EC-009: Missing Forecast Data
+- **Scenario**: API returns current weather but incomplete forecast
+- **Trigger Conditions**: Daily forecast array has less than 5 elements
+- **Expected Behavior**:
+  - Display available days only
+  - Show message about limited forecast
+  - No empty forecast cards
+  - Current weather displays normally
+- **Error Message**: "Limited forecast data available."
+- **Logging**: Console.warn with actual forecast count
+- **Recovery**: Display partial data, retry on next refresh
+
+#### EC-010: Extreme Temperature Values
+- **Scenario**: Temperature values outside reasonable range (-100°C to +100°C)
+- **Trigger Conditions**: Temperature validation detects outlier values
+- **Expected Behavior**:
+  - Skip display of unrealistic values
+  - Show "--" for temperature
+  - Log anomaly for investigation
+  - Other data displays normally
+- **Error Message**: "Temperature data unavailable"
+- **Logging**: Console.error with anomalous values
+- **Recovery**: Retry fetch, exclude bad values
+
+### Edge Case Category: Browser Compatibility
+
+#### EC-011: Geolocation API Unavailable
+- **Scenario**: Older browser doesn't support geolocation API
+- **Trigger Conditions**: navigator.geolocation is undefined
+- **Expected Behavior**:
+  - Skip GPS location step entirely
+  - Proceed directly to IP location
+  - Hide geolocation button
+  - Show compatible features only
+- **Error Message**: None (graceful degradation)
+- **Logging**: Console.info about missing API
+- **Recovery**: Use IP geolocation immediately
+
+#### EC-012: Local Storage Unavailable
+- **Scenario**: Browser in private mode or storage disabled
+- **Trigger Conditions**: localStorage access throws exception
+- **Expected Behavior**:
+  - Theme preference not persisted
+  - Use system preference only
+  - All other features work normally
+  - No error shown to user
+- **Error Message**: None
+- **Logging**: Console.warn about storage access
+- **Recovery**: Continue without persistence
+
+### Edge Case Category: Environmental
+
+#### EC-013: Invalid Environment Variables
+- **Scenario**: Required environment variables missing or malformed
+- **Trigger Conditions**: Build-time validation fails
+- **Expected Behavior**:
+  - Use hard-coded defaults
+  - Log warning during build
+  - Application remains functional
+  - Default to safe values
+- **Error Message**: None (build-time handling)
+- **Logging**: Build log warnings
+- **Recovery**: Use inline default values
+
+#### EC-014: Clock Sync Issues
+- **Scenario**: User's system clock significantly wrong
+- **Trigger Conditions**: Timestamp comparison detects >24 hour discrepancy
+- **Expected Behavior**:
+  - Ignore client timestamps
+  - Use server time from API
+  - Cache TTL based on relative time
+  - No user-facing errors
+- **Error Message**: None
+- **Logging**: Console.warn with time discrepancy
+- **Recovery**: Use server timestamps only
+
+#### EC-015: Memory Pressure
+- **Scenario**: Device low on memory, cache operations fail
+- **Trigger Conditions**: Cache set/get operations throw exceptions
+- **Expected Behavior**:
+  - Disable caching temporarily
+  - Continue without cache
+  - Fresh fetch on each request
+  - Clear existing cache
+- **Error Message**: None
+- **Logging**: Console.error with memory error
+- **Recovery**: Operate in cache-less mode
+
+---
+
+## Security and Compliance
+
+### Security Requirements
+
+#### Authentication and Authorization
+- **Authentication**: None required (internal tool)
+- **Authorization**: No user roles or permissions
+- **Access Control**: Network-level only (internal network)
+
+#### Input Validation and Sanitization
+- **City Search Input**:
+  - Maximum length: 100 characters
+  - Allowed characters: Letters, spaces, hyphens, apostrophes
+  - HTML entities escaped before display
+  - SQL injection not applicable (no database)
+  - XSS prevention through React's default escaping
+  
+```typescript
+function sanitizeCityInput(input: string): string {
+  return input
+    .trim()
+    .slice(0, 100)
+    .replace(/[^a-zA-Z\s\-']/g, '')
+    .replace(/\s+/g, ' ');
+}
+```
+
+#### Content Security Policy
+```typescript
+// next.config.js CSP headers
+const cspHeader = `
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: blob:;
+  font-src 'self' data:;
+  connect-src 'self' 
+    https://api.open-meteo.com 
+    https://geocoding-api.open-meteo.com
+    http://ip-api.com;
+  frame-src 'none';
+  object-src 'none';
+`;
+```
+
+#### Data Protection
+- **Data in Transit**: 
+  - HTTPS for production deployment
+  - HTTP acceptable for local development
+  - No sensitive data transmitted
+  
+- **Data at Rest**:
+  - No data persistence
+  - Memory-only cache
+  - No cookies or local storage for weather data
+  - Session-only theme preference
+
+#### API Security
+- **Rate Limiting**: 
+  - Client-side: 1 request per 10 seconds per location
+  - Server-side: Not required for internal use
+  - Debouncing on all user inputs
+  
+- **API Key Management**: 
+  - No API keys required (Open-Meteo is free)
+  - No secrets in client-side code
+  - Environment variables for configuration only
+
+### Compliance Requirements
+
+#### Privacy
+- **Data Collection**: None
+- **User Tracking**: None
+- **Analytics**: None
+- **Cookies**: None (except Next.js framework cookies)
+- **GDPR**: Not applicable (no personal data)
+- **CCPA**: Not applicable (no data sale/sharing)
+
+#### Accessibility
+- **Standards**: WCAG 2.1 Level A (best practices)
+- **Requirements**:
+  - Semantic HTML structure
+  - ARIA labels on interactive elements
+  - Keyboard navigation support
+  - Color contrast ratios ≥4.5:1
+  - Focus indicators on all interactive elements
+
+#### Licensing
+- **Open Source Dependencies**: MIT, Apache 2.0, ISC only
+- **API Terms**: Open-Meteo (CC BY 4.0 for data)
+- **No proprietary dependencies**
+
+---
+
+## Testing Requirements
+
+### Test Categories
+
+#### Unit Tests
+- **Coverage Requirement**: 70% for utility functions
+- **Critical Paths**:
+  - Weather code to condition mapping
+  - Temperature display formatting
+  - Cache expiry logic
+  - Coordinate validation
+  - Time formatting
+  
+```typescript
+// Example unit test
+describe('weatherCodeToCondition', () => {
+  test('maps clear sky correctly', () => {
+    expect(weatherCodeToCondition(0)).toEqual({
+      label: 'Clear Sky',
+      icon: '☀️',
+      severity: 'clear'
+    });
+  });
+  
+  test('handles invalid codes', () => {
+    expect(weatherCodeToCondition(999)).toEqual({
+      label: 'Unknown',
+      icon: '❓',
+      severity: 'unknown'
+    });
+  });
+});
+```
+
+#### Integration Tests
+- **Key Workflows**:
+  - Location acquisition flow
+  - Weather data fetching with retries
+  - Cache hit/miss scenarios
+  - Error recovery paths
+  
+```typescript
+// Example integration test
+describe('Location Acquisition', () => {
+  test('falls back through location methods', async () => {
+    // Mock geolocation failure
+    mockNavigatorGeolocation.getCurrentPosition.mockRejection();
+    
+    // Mock IP location success
+    mockFetch.mockResolvedValueOnce({
+      json: () => ({ lat: 41.7, lon: 44.8, city: 'Tbilisi' })
+    });
+    
+    const location = await acquireLocation();
+    expect(location.source).toBe('ip');
+  });
+});
+```
+
+#### End-to-End Tests
+- **Critical User Journeys**:
+  1. First visit with location permission grant
+  2. Returning visit with cached data
+  3. Manual city search and display
+  4. Offline to online transition
+  5. Manual refresh with rate limiting
+
+#### Performance Tests
+- **Load Scenarios**:
+  - Initial page load: <2s on Fast 3G
+  - Location acquisition: <5s timeout
+  - API response: <10s timeout
+  - Bundle size: <100KB gzipped
+  
+- **Success Criteria**:
+  - Time to Interactive: <2000ms
+  - First Contentful Paint: <1000ms
+  - Cumulative Layout Shift: <0.1
+
+### Acceptance Test Scenarios
+
+#### ATS-001: Successful Weather Display
+- **Given**: User visits app with internet connection
+- **When**: Browser location permission is granted
+- **Then**: 
+  - Current weather displays within 3 seconds
+  - Temperature shows with correct unit (°C)
+  - 5-day forecast visible below current weather
+  - Location name shows actual city
+
+#### ATS-002: Location Permission Denied
+- **Given**: User visits app for first time
+- **When**: Browser location permission is denied
+- **Then**:
+  - IP-based location attempted automatically
+  - Weather displays for approximate location
+  - Manual search box remains functional
+  - No error messages shown
+
+#### ATS-003: Manual City Search
+- **Given**: Weather displayed for any location
+- **When**: User types "London" and presses Enter
+- **Then**:
+  - Loading indicator appears
+  - London weather displays within 2 seconds
+  - Previous location replaced
+  - Search box clears after successful search
+
+#### ATS-004: Offline Data Display
+- **Given**: Weather data previously loaded
+- **When**: Internet connection lost
+- **Then**:
+  - Offline banner appears at top
+  - Last fetched data remains visible
+  - Timestamp shows when data was fetched
+  - Refresh button disabled
+
+#### ATS-005: Auto-Refresh Cycle
+- **Given**: App open for extended period
+- **When**: 10 minutes elapsed since last fetch
+- **Then**:
+  - Data refreshes automatically in background
+  - No visual disruption during update
+  - Timestamp updates to current time
+  - New data displays smoothly
+
+### Test Environment Setup
+
+```json
+// package.json test scripts
+{
+  "scripts": {
+    "test": "jest",
+    "test:unit": "jest --testMatch='**/*.test.ts'",
+    "test:integration": "jest --testMatch='**/*.integration.ts'",
+    "test:e2e": "playwright test",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch"
+  }
+}
+```
+
+---
+
+## Monitoring and Analytics
+
+### Key Metrics
+
+#### Performance Metrics
+- **Page Load Time**: Time from navigation start to interactive
+  - Formula: `performance.timing.domInteractive - performance.timing.navigationStart`
+  - Threshold: <2000ms for 95th percentile
+  - Alert Condition: >3000ms for 50th percentile
+
+- **API Response Time**: Duration of weather API calls
+  - Formula: `fetchEndTime - fetchStartTime`
+  - Threshold: <1000ms average
+  - Alert Condition: >5000ms for any request
+
+- **Cache Hit Rate**: Percentage of requests served from cache
+  - Formula: `cacheHits / (cacheHits + cacheMisses) * 100`
+  - Threshold: >50% during active session
+  - Alert Condition: <30% hit rate
+
+- **Location Acquisition Time**: Time to obtain user location
+  - Formula: `locationAcquired - locationRequestStart`
+  - Threshold: <3000ms for GPS, <1000ms for IP
+  - Alert Condition: >5000ms average
+
+### Error Tracking
+
+#### Client-Side Errors
+```typescript
+// Error logging utility
+function logError(error: Error, context: Record<string, any>) {
+  console.error('Application Error:', {
+    message: error.message,
+    stack: error.stack,
+    context,
+    timestamp: Date.now(),
+    userAgent: navigator.userAgent
+  });
+}
+
+// Global error handler
+window.addEventListener('error', (event) => {
+  logError(event.error, {
+    source: 'global',
+    url: event.filename,
+    line: event.lineno
+  });
+});
+```
+
+#### API Error Categories
+- **Network Errors**: Connection timeouts, DNS failures
+- **API Errors**: 4xx/5xx responses from Open-Meteo
+- **Validation Errors**: Malformed response data
+- **Permission Errors**: Geolocation access denied
+
+### Debug Mode
+
+```typescript
+// Enable via query parameter: ?debug=true
+const DEBUG_MODE = new URLSearchParams(window.location.search).has('debug');
+
+if (DEBUG_MODE) {
+  // Verbose console logging
+  console.info('Debug mode enabled');
+  
+  // Display performance metrics
+  window.addEventListener('load', () => {
+    console.table({
+      'DOM Interactive': performance.timing.domInteractive - performance.timing.navigationStart,
+      'DOM Complete': performance.timing.domComplete - performance.timing.navigationStart,
+      'Page Load': performance.timing.loadEventEnd - performance.timing.navigationStart
+    });
+  });
+  
+  // Show cache statistics
+  setInterval(() => {
+    console.log('Cache Stats:', cache.getStats());
+  }, 30000);
+}
+```
+
+### Health Checks
+
+#### Application Health Endpoint
+```typescript
+// /api/health
+export async function GET() {
+  const health = {
+    status: 'healthy',
+    timestamp: Date.now(),
+    checks: {
+      api: await checkAPIHealth(),
+      cache: checkCacheHealth()
+    }
+  };
+  
+  return Response.json(health);
+}
+
+async function checkAPIHealth(): Promise<boolean> {
+  try {
+    const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=0&longitude=0');
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+```
+
+## Rollout Strategy
+
+### Deployment Phases
+
+#### Phase 1: Local Development and Testing
+- **Scope**: 
+  - Core functionality implementation
+  - Basic UI with weather display
+  - Location detection (GPS + IP fallback)
+  - Manual testing on development machine
+- **Success Criteria**:
+  - All unit tests passing (>70% coverage)
+  - Weather displays correctly for 3 test locations
+  - Location fallback chain working
+  - No console errors in development mode
+- **Rollback Triggers**:
+  - Critical bugs in location detection
+  - API integration failures
+  - Build errors or TypeScript violations
+- **Timeline**: 2-3 days
+- **Environment**: localhost:3000
+
+#### Phase 2: Internal Testing Environment
+- **Scope**:
+  - Deploy to internal macOS server
+  - Test with internal team (5-10 users)
+  - Implement all edge case handling
+  - Add monitoring and error logging
+- **Success Criteria**:
+  - <2 second load time achieved
+  - All acceptance tests passing
+  - No critical errors in 24-hour test period
+  - Positive feedback from test users
+- **Rollback Triggers**:
+  - Memory leaks detected
+  - Cache corruption issues
+  - Consistent API failures
+- **Timeline**: 1 week
+- **Environment**: Internal network deployment
+
+#### Phase 3: Production Deployment
+- **Scope**:
+  - Final deployment on production macOS machine
+  - Full feature set enabled
+  - Auto-refresh and all optimizations active
+  - Documentation completed
+- **Success Criteria**:
+  - 100% uptime for 48 hours
+  - <100KB bundle size confirmed
+  - All performance metrics meeting targets
+  - No user-reported issues
+- **Rollback Triggers**:
+  - Any data corruption
+  - Security vulnerabilities discovered
+  - Performance degradation >50%
+- **Timeline**: Ongoing
+- **Environment**: Production internal server
+
+### Feature Flags
+
+```typescript
+// Feature flag configuration
+const FEATURES = {
+  AUTO_REFRESH: process.env.NEXT_PUBLIC_ENABLE_AUTO_REFRESH === 'true',
+  PULL_TO_REFRESH: process.env.NEXT_PUBLIC_ENABLE_PULL_REFRESH === 'true',
+  DARK_MODE: process.env.NEXT_PUBLIC_ENABLE_DARK_MODE === 'true',
+  DEBUG_MODE: process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true',
+  CACHE_ENABLED: process.env.NEXT_PUBLIC_ENABLE_CACHE !== 'false'
+};
+
+// Usage in components
+if (FEATURES.AUTO_REFRESH) {
+  useInterval(refreshWeather, REFRESH_INTERVAL);
+}
+```
+
+### Deployment Configuration
+
+#### Build Commands
+```bash
+# Development
+npm run dev          # Start development server with Turbopack
+npm run build        # Production build
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run type-check   # TypeScript validation
+
+# Deployment
+npm run build && npm run start
+```
+
+#### Environment Setup
+```bash
+# Production .env.local
+NODE_ENV=production
+NEXT_PUBLIC_DEFAULT_CITY="San Francisco, California"
+NEXT_PUBLIC_DEFAULT_LAT=37.7749
+NEXT_PUBLIC_DEFAULT_LON=-122.4194
+NEXT_PUBLIC_TEMP_UNIT=celsius
+NEXT_PUBLIC_ENABLE_AUTO_REFRESH=true
+NEXT_PUBLIC_ENABLE_PULL_REFRESH=true
+NEXT_PUBLIC_ENABLE_DARK_MODE=true
+NEXT_PUBLIC_ENABLE_CACHE=true
+NEXT_PUBLIC_ENABLE_DEBUG=false
+```
+
+#### Monitoring Setup
+- Console logging to system logs
+- Performance metrics logged hourly
+- Error aggregation in local log files
+- Health check endpoint for uptime monitoring
+
+---
+
+## Appendices
+
+### A. Glossary
+
+- **API (Application Programming Interface)**: A set of protocols and tools for building software applications; in this context, refers to the Open-Meteo weather service endpoints
+
+- **App Router**: Next.js 13+ routing system that uses the app directory structure for file-based routing with support for layouts, server components, and streaming
+
+- **Bundle Size**: The total size of JavaScript code sent to the browser, measured after minification and gzip compression
+
+- **Cache TTL (Time To Live)**: Duration in milliseconds that cached data remains valid before requiring refresh (600000ms = 10 minutes)
+
+- **Client Component**: React component that runs in the browser, marked with 'use client' directive, handles interactivity and browser APIs
+
+- **CSP (Content Security Policy)**: HTTP header that helps prevent XSS attacks by declaring which dynamic resources are allowed to load
+
+- **Debouncing**: Programming practice to limit the rate at which a function can fire by introducing a delay between invocations
+
+- **Edge Case**: An unusual or extreme scenario that occurs at the boundaries of normal operating parameters
+
+- **Exponential Backoff**: Retry strategy where the delay between retries increases exponentially (1s, 2s, 4s, 8s)
+
+- **Fallback Chain**: Sequential series of alternative methods attempted when primary method fails (GPS → IP → Default)
+
+- **FCP (First Contentful Paint)**: Performance metric measuring time from navigation start to when the first content is painted on screen
+
+- **Geolocation API**: Browser API that provides access to the device's geographic location with user permission
+
+- **IP Geolocation**: Method of determining geographic location based on IP address
+
+- **LCP (Largest Contentful Paint)**: Performance metric measuring render time of the largest image or text block visible within the viewport
+
+- naturally
+
+- **Open-Meteo**: Free, open-source weather API that provides forecast data without requiring authentication
+
+- **Progressive Enhancement**: Web design strategy that provides basic functionality to all browsers while enhancing the experience for modern browsers
+
+- **Server Component**: React component that renders on the server, reducing client-side JavaScript and improving performance
+
+- **Skeleton Screen**: Loading placeholder that mimics the structure of content before actual data loads
+
+- **TTI (Time to Interactive)**: Performance metric measuring time until the page becomes fully interactive
+
+- **Turbopack**: Next.js's Rust-based bundler, replacement for Webpack in development mode, providing faster builds
+
+- **WMO Weather Code**: World Meteorological Organization standardized codes for weather conditions (0-99)
+
+- **Zod**: TypeScript-first schema validation library used for runtime type checking of API responses
+
+### B. References
+
+#### External Documentation
+- [Next.js 15 Documentation](https://nextjs.org/docs): Official framework documentation
+- [Open-Meteo API Documentation](https://open-meteo.com/en/docs): Weather API reference
+- [React 19 Documentation](https://react.dev): React framework documentation
+- [shadcn/ui Components](https://ui.shadcn.com): Component library documentation
+- [Tailwind CSS](https://tailwindcss.com/docs): Utility-first CSS framework
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/): Language documentation
+- [Web Geolocation API](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API): MDN reference
+- [Zod Documentation](https://zod.dev): Schema validation library
+
+#### API Endpoints
+- Weather Data: `https://api.open-meteo.com/v1/forecast`
+- Geocoding: `https://geocoding-api.open-meteo.com/v1/search`
+- IP Location: `http://ip-api.com/json/`
+
+#### Design Resources
+- [WMO Weather Codes](https://www.nodc.noaa.gov/archive/arc0021/0002199/1.1/data/0-data/HTML/WMO-CODE/WMO4677.HTM): Official weather code definitions
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/): Web accessibility standards
+
+### C. Change Log
+
+- **2024-12-19**: v1.0.0 - Initial PRD creation
+  - Defined core requirements for weather application
+  - Established technical architecture with Next.js 15
+  - Specified Open-Meteo as primary weather API
+  - Approver: Development Team Lead
+
+### D. Validation Checklist
+
+#### Requirements Completeness
+- [x] All requirements have unique identifiers (FR-XXX, NFR-XXX)
+- [x] Every requirement has measurable acceptance criteria
+- [x] All edge cases are explicitly documented (EC-001 through EC-015)
+- [x] Dependencies are mapped bidirectionally
+- [x] User stories cover all primary use cases
+- [x] Non-functional requirements address performance, security, and usability
+
+#### Technical Specifications
+- [x] API endpoints fully documented with request/response formats
+- [x] Data models defined with TypeScript interfaces
+- [x] State management workflows clearly mapped
+- [x] Component architecture specified (server vs client)
+- [x] Environment variables documented
+- [x] Build and deployment commands provided
+
+#### Performance Requirements
+- [x] Performance requirements include specific metrics (<2s load time)
+- [x] Bundle size limits defined (<100KB gzipped)
+- [x] Cache strategy specified (10-minute TTL)
+- [x] Timeout values documented (API: 10s, Geolocation: 5s)
+- [x] Rate limiting implemented (10-second debounce)
+
+#### Error Handling
+- [x] Error states include recovery mechanisms
+- [x] All API failure scenarios addressed
+- [x] Offline functionality specified
+- [x] Fallback chain documented (GPS → IP → Default)
+- [x] User-facing error messages defined
+
+#### Security and Compliance
+- [x] Security requirements are comprehensive
+- [x] Input validation rules specified
+- [x] Content Security Policy defined
+- [x] No external dependencies requiring API keys
+- [x] Privacy considerations addressed (no data collection)
+
+#### Testing Requirements
+- [x] Test scenarios cover all critical paths
+- [x] Acceptance criteria are testable
+- [x] Performance benchmarks established
+- [x] Unit, integration, and E2E tests specified
+- [x] Test environment setup documented
+
+#### Implementation Readiness
+- [x] Technology stack fully specified
+- [x] Project structure outlined
+- [x] Rollout strategy defined
+- [x] Feature flags configured
+- [x] Monitoring approach established
+- [x] All external dependencies are free and available
+
+#### AI Agent Compatibility
+- [x] Document uses consistent markdown formatting
+- [x] All code examples are complete and runnable
+- [x] File paths and structure clearly defined
+- [x] No ambiguous instructions or requirements
+- [x] Success metrics are quantifiable
+- [x] Implementation steps are sequential and clear
+
+### E. Implementation Quick Start
+
+```bash
+# 1. Create Next.js application
+npx create-next-app@latest weather-app --typescript --tailwind --app
+
+# 2. Install dependencies
+cd weather-app
+npm install zod clsx
+
+# 3. Initialize shadcn/ui
+npx shadcn-ui@latest init
+npx shadcn-ui@latest add button card skeleton input
+
+# 4. Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with configuration values
+
+# 5. Start development server
+npm run dev
+
+# 6. Build for production
+npm run build
+npm run start
+```
+
+### F. Contact and Support
+
+- **Internal Documentation**: `/docs` directory in repository
+- **Issue Tracking**: Internal issue tracker
+- **Code Repository**: Internal Git server
+- **Deployment Guide**: `/docs/deployment.md`
+- **Troubleshooting**: `/docs/troubleshooting.md`
