@@ -147,7 +147,7 @@ export default function Home() {
       <div className="container mx-auto py-8 px-4">
         {/* Header with Location Controls */}
         <div className="mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <h1 className="text-3xl font-bold">Weather Lite</h1>
+          <h1 className="text-3xl font-bold">🌤️ Weather Lite</h1>
           
           <div className="flex gap-2 items-center w-full sm:w-auto">
             <LocationSelector 
